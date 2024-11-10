@@ -1,3 +1,5 @@
 *.tsv
 __pycache__/
 *.tsv#
+*.txt
+accounts.db
