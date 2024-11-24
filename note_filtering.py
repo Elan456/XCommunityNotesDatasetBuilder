@@ -36,6 +36,26 @@ def filter_mainpulated_media(notes):
 
     return notes
 
+def filter_by_keywords_in_summary(notes, keywords):
+    """
+    Removes notes that do not contain any of the keywords in the summary
+    """
+
+    notes = notes[notes["summary"].str.contains("|".join(keywords), case=False, na=False)]
+    return notes
+
+def filter_contains_photo_or_image_keyword(notes):
+    """
+    Removes notes without the word "photo" or "image" in the text
+    """
+    notes = filter_by_keywords_in_summary(notes, ["photo", "image", "photograph", "picture", "photos",
+                                                   "images", "photographs", "pictures"])
+    
+    if len(notes) == 0:
+        raise ValueError("No notes with photo or image keyword in summary")
+    
+    return notes
+
 
 
 

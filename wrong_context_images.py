@@ -20,7 +20,11 @@ if __name__ == "__main__":
     try: 
         notes = note_filtering.filter_classification_not_misinformed(notes)
         notes = note_filtering.filter_misleading_images(notes)
-        notes = note_filtering.filter_mainpulated_media(notes)
+        # print("pre manipulated media filter shape:", notes.shape)
+        # notes = note_filtering.filter_mainpulated_media(notes)
+        print("pre photo keyword filter shape:", notes.shape)
+        notes = note_filtering.filter_contains_photo_or_image_keyword(notes)
+        print("post photo keyword filter shape:", notes.shape)
     except ValueError as e:
         print(e)
         exit(1)
