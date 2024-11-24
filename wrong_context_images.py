@@ -18,6 +18,7 @@ if __name__ == "__main__":
     notes = pd.read_csv(args.input_file, sep="\t")
 
     try: 
+        notes = note_filtering.filter_summary_duplicates(notes)
         notes = note_filtering.filter_classification_not_misinformed(notes)
         notes = note_filtering.filter_misleading_images(notes)
         # print("pre manipulated media filter shape:", notes.shape)

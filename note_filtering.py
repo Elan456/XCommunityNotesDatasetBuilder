@@ -56,9 +56,12 @@ def filter_contains_photo_or_image_keyword(notes):
     
     return notes
 
-
-
-
+def filter_summary_duplicates(notes):
+    """
+    Removes notes with duplicate summaries
+    """
+    notes = notes.drop_duplicates(subset="summary")
+    return notes
 
 if __name__ == "__main__":
 
