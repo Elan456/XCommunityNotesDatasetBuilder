@@ -63,6 +63,13 @@ def filter_summary_duplicates(notes):
     notes = notes.drop_duplicates(subset="summary")
     return notes
 
+def add_twitter_link_column(notes):
+    """
+    Adds a column with the twitter link to the note
+    """
+    notes["twitter_link"] = "https://twitter.com/i/web/status/" + notes["tweetId"].astype(str)
+    return notes
+
 if __name__ == "__main__":
 
 

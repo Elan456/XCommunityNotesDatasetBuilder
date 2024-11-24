@@ -26,6 +26,7 @@ if __name__ == "__main__":
         print("pre photo keyword filter shape:", notes.shape)
         notes = note_filtering.filter_contains_photo_or_image_keyword(notes)
         print("post photo keyword filter shape:", notes.shape)
+        notes = note_filtering.add_twitter_link_column(notes)
     except ValueError as e:
         print(e)
         exit(1)
