@@ -45,9 +45,26 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
         prompt.append(f"Community Note: {tweet.community_note}")
         img = Image.open(tweet.image_path)
         prompt.append(img)
+        prompt.append("""Respond in the format: {"classification": "contextual"} or {"classification": "misleading"}.""")
         response = gemini.generate(prompt)
 
+        # Check if the response says misleading or contextual
+
+        r_text = response.text.lower()
+        m_loc = r_text.find("misleading")
+        c_loc = r_text.find("contextual")
+
+        if m_loc != -1 and c_loc != -1:
+            classification = "misleading" if m_loc < c_loc else "contextual"
+        elif m_loc != -1 and c_loc == -1:
+            classification = "misleading"
+        elif c_loc != -1 and m_loc == -1:
+            classification = "contextual"
+        else:
+            classification = "unknown"
+
         print(response)
+        print("Parsed classification: ", classification)
 
 if __name__ == "__main__": # Quick test
     tweet_misleading = TweetWithContext("Sex offending rate of women: 3 per one million Sex offending rate of men: 395 per million Sex offending rates of transwomen: 1,916 per million",
