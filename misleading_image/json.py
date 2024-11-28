@@ -1,0 +1,89 @@
+import json
+
+data = {
+    "entries": [
+        {
+            "classification": "Contextual Image",
+            "community_note": "This image shows a McDonald's sign on fire in Auckland, New Zealand in November 2023. The cause of the fire is under investigation.    A witness saw it flickering before catching fire. The sign had been flickering for months, according to local residents.    https://www.nzherald.co.nz/nz/golden-arches-ablaze-in-auckland-mcdonalds-fire/IL73DQYPYBCKVMAER3OVK3OCAI/",
+            "tweet_text": "Beautiful BOYCOTT child killers!! #BoycottMcDonalds @ShaykhSulaiman",
+            "rationale": "The poster is implying that McDonald's as a franchise is being boycott due to them being \"child killers\", however this is an incident where the sign just caught fire.",
+            "img_path": "misleading_image/imgs/mcdonald.png"
+        },
+        {
+            "classification": "Contextual Image",
+            "community_note": "Vampire hunting kits are merely fabricated props. Their lack of historical evidence prior to the 1950s, including absence from advertisements, images, narratives, and publications, exposes their inauthenticity.    https://fakehistoryhunter.net/2023/06/17/not-an-antique-vampire-hunting-kit/",
+            "tweet_text": "19th century vampire hunting kit …",
+            "rationale": "The poster is implying that this is a real vampire hunting kit from the 19th century, however evidence likely suggests that this image is one of a fabricated prop. ",
+            "img_path": "misleading_image/imgs/vampire.png"
+        },
+        {
+            "classification": "Contextual Image",
+            "community_note": "The photo shows Plaza Mayor, Valladolid, Spain, during the concerts for the celebrations of Virgen de San Lorenzo, 2018.    https://6sedici.com/2024/07/09/the-photo-shows-the-feria-y-fiestas-de-la-virgen-de-san-lorenzo-in-valladolid-2018/    https://web.archive.org/web/20180904183720/https://www.elnortedecastilla.es/valladolid/fiestas/inphinito-raphael-20180903005356-nt.html",
+            "tweet_text": "1,250,000 people are already waiting for Milei at La Casa de Tucumán for the signing of the May Pact.",
+            "rationale": "The poster is implying that this crowd is for an event for Milei in Argentia, but the crowd is actually from a concert in Spain from years prior. ",
+            "img_path": "misleading_image/imgs/milei.png"
+        },
+        {
+            "classification": "Contextual Image",
+            "community_note": "This image of a hooded shooter is a stock photo from an active threat training company PDF document (from ReflexProtect.com). Seen on page 15 of linked PDF. It is NOT related to this incident whatsoever. https://osec.sccgov.org/sites/g/files/exjcpb1071/files/session-5-17-survive-shooting-Alain-Burrese-19.pdf",
+            "tweet_text": "#BREAKING : First Photo of Active Shooter : According to a statement from the Barrow County Sheriff’s Office, One suspect is in custody after authorities received a report of an active #ApalacheeHighSchool #Shooting #ActiveShooter #BarrowCounty #Georgia #BarrowCountySheriff",
+            "rationale": "The poster is implying that this photo is related to a specific shooting, however this image is just a stock photo",
+            "img_path": "misleading_image/imgs/shooter.png"
+        },
+        {
+            "classification": "Contextual Image",
+            "community_note": "This image is a composite of two images:  Jupiter and its Great Red Spot were captured by Voyager 1 on 4 March 1979, while the image of  Io was taken by Galileo on 4 April 1997. The two were put together as part of NASA's Juno mission trailer, &quot;Into the Unknown&quot;.    https://www.seti.org/planetary-picture-day-week-may-30-2022  https://apod.nasa.gov/apod/ap160628.html",
+            "tweet_text": "Jupiter and its moon Io | NASA",
+            "rationale": "The poster didn't give context that the image is a composite, many viewers would assume that IO and Jupiter were actually captured together",
+            "img_path": "misleading_image/imgs/jupiter.png"
+        },
+        {
+            "classification": "Contextual Image",
+            "community_note": "The photo dates back to 2015, showing a church in France vandalized by a group of youths in retaliation against an elderly couple who frequent the church. The act was not motivated by religious hatred.  Islam holds a profound respect for Jesus, Moses, and Solomon.    https://www.larep.fr/saint-martin-sur-ocre-45500/actualites/saint-martin-sur-ocre-se-reveille-a-nouveau-couvert-de-tags_11721972/    https://www.britannica.com/topic/Islam",
+            "tweet_text": "“Allah Akbar and f*ck Jesus”, they wrote on church in France. They hate us.",
+            "rationale": "The poster did not give the context that the church was vandalized by teens in retaliation against an elderly couple and tries to apply a different context to it. ",
+            "img_path": "misleading_image/imgs/church.png"
+        },
+        {
+            "classification": "Misleading Image",
+            "community_note": "This is a Digitally altered photo purports to show Ukrainian President Zelenskiy’s former advisor Oleksiy Arestovych at a pride parade     https://www.reuters.com/article/idUSL1N35A2EW/",
+            "tweet_text": "Absolute clown show.",
+            "rationale": "The image itself is made to be misleading, however the author did not mention that the image is altered. ",
+            "img_path": "misleading_image/imgs/zelensky.png"
+        },
+        {
+            "classification": "Misleading Image",
+            "community_note": "The picture used here is edited and is being used for deceptive interactions.     NASA Photo ID: AS11-40-5868  https://eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=AS11&amp;roll=40&amp;frame=5868",
+            "tweet_text": "It's absolutely endless the lies #reasearchflatearth #flatearth",
+            "rationale": "The poster didn't give context that the image being used is edited rather than the original.",
+            "img_path": "misleading_image/imgs/moonlanding.png"
+        },
+        {
+            "classification": "Misleading Image",
+            "community_note": "Constellations do change over time, though this is not significantly affected by the Earth’s movement around the sun, and is mainly affected by the movement of the stars that make them up as well as of our solar system with respect to them.     https://www.popularmechanics.com/space/deep-space/a20347/how-the-big-dipper-has-changedand-will-changeover-200000-years/?darkschemeovr=1",
+            "tweet_text": "The eyes are useless when the mind is blind. Research #FlatEarth",
+            "rationale": "The image itself is made to be misleading and is implying something to be true that is not a fact.",
+            "img_path": "misleading_image/imgs/constellation.png"
+        },
+        {
+            "classification": "Misleading Image",
+            "community_note": "This is a digitally edited photo, Hanks did not wear such a T-shirt. The image is an edited version of a photograph that showed Hanks walking around Sydney, Australia, in March 2020.    Factcheck:  https://www.snopes.com/fact-check/tom-hanks-shirt-america-trump/    Original photo:  https://www.dailymail.co.uk/news/article-8104781/Tom-Hanks-wife-Rita-Wilson-contracted-coronavirus-overseas-brought-Australia.html",
+            "tweet_text": "WHO agrees with Tom Hanks?🤚 #DiaperDon #TrumpSmells #TrumpStinks Trump's Christmas",
+            "rationale": "The image is edited and made to be misleading, and the owner posted about the narrative in the image rather than saying that the image was edited. ",
+            "img_path": "misleading_image/imgs/tomhanks.png"
+        },
+        {
+            "classification": "Misleading Image",
+            "community_note": "This is not a genuine photograph of a woman giving a Nazi salute at a Trump rally. The edited image shown above was created by altering a photograph taken in August 2010 at a neo-Nazi rally in Knoxville, Tennessee.",
+            "tweet_text": "These are the Neo-Christo-fascist who helped put Trump in office in 2016! Are we going to let them do it again this year? I'm saying hell NO! What do you think? Should we ignore them and just let the chips fall where they may or should we take an active stance against them? 🤔",
+            "rationale": "The image is edited and made to be misleading, and the owner posted about the narrative in the image rather than saying that the image was edited. ",
+            "img_path": "misleading_image/imgs/neonazi.png"
+        },
+
+    ]
+}
+
+json_data = json.dumps(data, indent=4)
+
+with open('community_notes.json', 'w') as json_file:
+    json_file.write(json_data)
