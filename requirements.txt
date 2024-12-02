@@ -3,3 +3,4 @@ numpy
 twscrape
 google-generativeai
 pillow
+tweepy
