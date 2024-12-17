@@ -20,7 +20,17 @@ class Gemini:
         self.current_key_index = (self.current_key_index + 1) % len(self.keys)
 
         self.model = genai.GenerativeModel("gemini-1.5-flash")
-        response = self.model.generate_content(prompt)
+        done = False 
+        while not done: 
+            try:
+                response = self.model.generate_content(prompt)
+                done = True
+            except Exception as e:
+                print("Exception when generating content: ", e)
+                print("Sleeping, and switching to next key")
+                genai.configure(api_key=self.keys[self.current_key_index])
+                self.current_key_index = (self.current_key_index + 1) % len(self.keys)
+                time.sleep(10)
         return response
     
 gemini = Gemini("misleading_image/google.key")  # Initialize the gemini model
@@ -53,8 +63,9 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
                 img_path = value
                 img = Image.open(img_path)
                 prompt_base.append(img)
-
-    for tweet in tqdm(tweets):
+    iterator = tqdm(tweets)
+    iterator.set_description("Classifying images")
+    for tweet in iterator:
         rpm = requests_made / (time.time() - start_time) / 60
         if rpm > gemini.get_max_rpm():
             print("Current RPM is ", rpm, " sleeping for 10 seconds")
@@ -85,7 +96,7 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
             classification = "unknown"
 
         # print(response)
-        print("Parsed classification: ", classification)
+        # print("Parsed classification: ", classification)
         tweet.llm_image_classification = classification
         tweet.full_llm_image_response = response.text
 

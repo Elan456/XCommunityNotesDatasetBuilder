@@ -23,7 +23,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.tweet_file, 'r') as f:
-        tweets = json.load(f)[:10]
+        tweets = json.load(f) # [:10]
 
     # Remove tweets without images
     tweets = [tweet for tweet in tweets if tweet['image_urls']]
