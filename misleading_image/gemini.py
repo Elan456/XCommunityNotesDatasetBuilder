@@ -4,23 +4,39 @@ from typing import List
 import os 
 import json 
 import PIL.Image as Image
+from tqdm import tqdm
+import time 
 
 class Gemini:
-    def __init__(self):
-        genai.configure(api_key=open("misleading_image/google.key", "r").read())
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+    def __init__(self, keys_file):
+        self.keys = [key.strip() for key in open(keys_file, "r").readlines()]
+        self.current_key_index = 0
+
+    def get_max_rpm(self):
+        return len(self.keys) * 14
     
     def generate(self, prompt):
+        genai.configure(api_key=self.keys[self.current_key_index])
+        self.current_key_index = (self.current_key_index + 1) % len(self.keys)
+
+        self.model = genai.GenerativeModel("gemini-1.5-flash")
         response = self.model.generate_content(prompt)
         return response
     
-gemini = Gemini()
+gemini = Gemini("misleading_image/google.key")  # Initialize the gemini model
 
 def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
+    """
+    Uses Gemini to add a classification to each tweet's image as either "contextual" or "misleading"
+    Returns the same list of tweets with the added classification to each object
+    """
     # Pre load and rewrite the json file without any non-ascii characters
     # pj = json.load(open("misleading_image/prompts/p1.json", "r", encoding="utf-8"))
     # with open("misleading_image/prompts/p1.json", "w") as f:
     #     json.dump(pj, f, ensure_ascii=True, indent=4)
+
+    start_time = time.time()
+    requests_made = 0
 
 
     prompt_base_json = json.load(open("misleading_image/prompts/p1.json", "r"))
@@ -38,15 +54,20 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
                 img = Image.open(img_path)
                 prompt_base.append(img)
 
-    for tweet in tweets:
+    for tweet in tqdm(tweets):
+        rpm = requests_made / (time.time() - start_time) / 60
+        if rpm > gemini.get_max_rpm():
+            print("Current RPM is ", rpm, " sleeping for 10 seconds")
+            time.sleep(10)
+
         prompt = prompt_base.copy()
         prompt.append("Is the image itself a contextual image or misleading image? If the image itself isn't misleading but is being used incorrectly, then it is a contextual image. If the image is misleading on its own, then it is a misleading image.")
         prompt.append(f"Tweet: {tweet.text}")
         prompt.append(f"Community Note: {tweet.community_note}")
-        img = Image.open(tweet.image_path)
-        prompt.append(img)
-        prompt.append("""Respond in the format: {"classification": "contextual"} or {"classification": "misleading"}.""")
+        prompt.append(tweet.image)
+        prompt.append("""Respond in the format: {"classification": "contextual"} or {"classification": "misleading"}. Followed by your resoning for the classification.""")
         response = gemini.generate(prompt)
+        requests_made += 1
 
         # Check if the response says misleading or contextual
 
@@ -63,8 +84,12 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
         else:
             classification = "unknown"
 
-        print(response)
+        # print(response)
         print("Parsed classification: ", classification)
+        tweet.llm_image_classification = classification
+        tweet.full_llm_image_response = response.text
+
+    return tweets
 
 if __name__ == "__main__": # Quick test
     tweet_misleading = TweetWithContext("Sex offending rate of women: 3 per one million Sex offending rate of men: 395 per million Sex offending rates of transwomen: 1,916 per million",
