@@ -9,7 +9,7 @@ import tweepy
 import json 
 import time 
 
-import fields 
+from .. import fields 
 from .base_collector import TwitterCollector
 
 
@@ -82,7 +82,11 @@ class IDTwitterCollector(TwitterCollector):
         if "media" not in res.includes:
             no_media = True
 
-        all_users = res.includes["users"].copy()
+        try:
+            all_users = res.includes["users"].copy()
+        except KeyError:
+            print("No users found in the response")
+            return []  # If there are no users, there are no tweets
 
         for i in range(len(res.data)):
             id = res.data[i].id

@@ -11,7 +11,7 @@ def count_types(json_file):
         data = json.load(f)
     counts = {}
     for item in data:
-        if not 'llm_image_classification' in item:
+        if 'llm_image_classification' not in item:
             print(f"Warning: item {item['id']} does not have a 'llm_image_classification' field")
             continue
         if item['llm_image_classification'] in counts:

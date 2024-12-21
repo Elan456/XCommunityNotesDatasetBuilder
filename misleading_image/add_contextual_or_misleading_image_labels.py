@@ -16,13 +16,8 @@ from .twc import TweetWithContext
 from .gemini import gemini_filter_misleading_images
 from tqdm import tqdm 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Add LLM image classification to json file')
-    parser.add_argument('--tweet_file', type=str, help='Input json file')
-    parser.add_argument('--output_file', type=str, help='Output json file')
-    args = parser.parse_args()
-
-    with open(args.tweet_file, 'r') as f:
+def main(tweet_json_file, output_json_file):
+    with open(tweet_json_file, 'r') as f:
         tweets = json.load(f) # [:10]
 
     # Remove tweets without images
@@ -46,11 +41,6 @@ if __name__ == "__main__":
     # Adding the LLM classification to each tweet object
     tweet_objs = gemini_filter_misleading_images(tweet_objs)
 
-    # Iterate through each tweet_obj and update the tweet json with the classification
-
-    # zip   a [1, 2, 3] and b['a', 'b', 'c'] -> [(1, 'a'), (2, 'b'), (3, 'c')]
-    # 
-
 
     for twc in tweet_objs:
         tweet_index = None 
@@ -66,5 +56,13 @@ if __name__ == "__main__":
         tweets[tweet_index]['full_llm_image_response'] = twc.full_llm_image_response
         
 
-    with open(args.output_file, 'w') as f:
+    with open(output_json_file, 'w') as f:
         json.dump(tweets, f, indent=4)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Add LLM image classification to json file')
+    parser.add_argument('--tweet_file', type=str, help='Input json file')
+    parser.add_argument('--output_file', type=str, help='Output json file')
+    args = parser.parse_args()
+
+    main(args.tweet_file, args.output_file)

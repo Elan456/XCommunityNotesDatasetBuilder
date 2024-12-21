@@ -5,3 +5,4 @@ __pycache__/
 accounts.db
 *.key
 *.json
+*.flag

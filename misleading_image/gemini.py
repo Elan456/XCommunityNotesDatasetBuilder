@@ -81,24 +81,28 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
         requests_made += 1
 
         # Check if the response says misleading or contextual
+        try:
+            r_text = response.text.lower()
+            m_loc = r_text.find("misleading")
+            c_loc = r_text.find("contextual")
 
-        r_text = response.text.lower()
-        m_loc = r_text.find("misleading")
-        c_loc = r_text.find("contextual")
+            if m_loc != -1 and c_loc != -1:
+                classification = "misleading" if m_loc < c_loc else "contextual"
+            elif m_loc != -1 and c_loc == -1:
+                classification = "misleading"
+            elif c_loc != -1 and m_loc == -1:
+                classification = "contextual"
+            else:
+                classification = "unknown"
 
-        if m_loc != -1 and c_loc != -1:
-            classification = "misleading" if m_loc < c_loc else "contextual"
-        elif m_loc != -1 and c_loc == -1:
-            classification = "misleading"
-        elif c_loc != -1 and m_loc == -1:
-            classification = "contextual"
-        else:
-            classification = "unknown"
-
-        # print(response)
-        # print("Parsed classification: ", classification)
-        tweet.llm_image_classification = classification
-        tweet.full_llm_image_response = response.text
+            # print(response)
+            # print("Parsed classification: ", classification)
+            tweet.llm_image_classification = classification
+            tweet.full_llm_image_response = response.text
+        except ValueError:
+            print("Error collecting the classification: ", response.text)
+            tweet.llm_image_classification = "unknown"
+            tweet.full_llm_image_response = "Error collecting the classification. Full response: " + str(response)
 
     return tweets
 
