@@ -17,13 +17,12 @@ class TwitterCollector:
     def __init__(self, api_key: str):
         self.client = tweepy.Client(api_key)
 
-    def get_tweets(self, tweet_ids: list):
+    def get_tweets_by_ids(self, tweet_ids: list):
         """
         Given a list of any number of tweet ids, break them into 100 tweet chunks and get the data for each tweet
         assembling all the data together into a single list of dictionaries
 
         We can only send 15 requests per 15 minutes
-
         """
         start_time = time.time()
         tweets = []
@@ -36,7 +35,7 @@ class TwitterCollector:
                 time.sleep(60)
 
             try:
-                yield self._format_tweet_results(self._get_multiple_tweets(tweet_ids[i:i + 100]))
+                yield self._format_tweet_results(self._get_multiple_tweets_by_ids(tweet_ids[i:i + 100]))
             except tweepy.errors.HTTPException as e:
                 print(f"Error: {e}")
                 print("Sleeping for 1 minute")
@@ -158,7 +157,7 @@ class TwitterCollector:
                                      user_fields=fields.ALL_USER_FIELDS,
                                      )
 
-    def _get_multiple_tweets(self, tweet_ids: list):
+    def _get_multiple_tweets_by_ids(self, tweet_ids: list):
         return self.client.get_tweets(tweet_ids,
                                         expansions=fields.ALL_EXPANSIONS,
                                         media_fields=fields.ALL_MEDIA_FIELDS,
