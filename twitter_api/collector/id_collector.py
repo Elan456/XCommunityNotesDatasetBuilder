@@ -10,12 +10,13 @@ import json
 import time 
 
 import fields 
+from .base_collector import TwitterCollector
 
 
 
-class TwitterCollector:
+class IDTwitterCollector(TwitterCollector):
     def __init__(self, api_key: str):
-        self.client = tweepy.Client(api_key)
+        super().__init__(api_key)
 
     def get_tweets_by_ids(self, tweet_ids: list):
         """
@@ -25,7 +26,6 @@ class TwitterCollector:
         We can only send 15 requests per 15 minutes
         """
         start_time = time.time()
-        tweets = []
         requests_made = 0
         for i in range(0, len(tweet_ids), 100):
             # Check if we can make a request i.e. if our requests per minutes is less than 1 
@@ -170,7 +170,7 @@ class TwitterCollector:
 
 if __name__ == "__main__":
     api_key = open("twitter_api/bearer.key", "r").read()
-    collector = TwitterCollector(api_key)
+    collector = IDTwitterCollector(api_key)
     
     example = collector.get_single_tweet("1772726192967156095")
     # Write the example to a json file
