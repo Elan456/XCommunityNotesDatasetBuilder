@@ -1,4 +1,9 @@
-from step import Step, Checkpoint
+from step import Step
+from checkpoint import Checkpoint
+
+valid_steps = [
+
+]
 
 def update(checkpoint: Checkpoint, step: Step):
     """
