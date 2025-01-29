@@ -21,6 +21,7 @@ import wrong_context_community_notes_filter
 from twitter_api.collector.id_collector import IDTwitterCollector
 from misleading_image import add_contextual_or_misleading_image_labels
 from misleading_image import community_note_injector
+from misleading_image import add_topical_category
 
 WRONG_CONTEXT_COMMUNITY_NOTES = "wrong_context_community_notes.tsv"
 NOVEL_WRONG_CONTEXT_COMMUNITY_NOTES = "novel_wrong_context_community_notes.tsv"
@@ -32,6 +33,9 @@ TWEETS_WITH_COMMUNITY_NOTES = "tweets_with_community_notes.json"
 
 # Contextual or misleading image labels from LLM with the community notes and tweets (concise name)
 CONTEXTUAL_OR_MISLEADING_IMAGE_LABELS = "contextual_or_misleading_image_labels.json"
+
+# with topical categories added on, needs community notes, tweet, and images
+TWEETS_WITH_TOPICAL_CATEGORIES = "tweets_with_topical_categories.json"
 
 # Final dataset with the existing dataset and the new tweets
 FINAL_DATASET = "final_dataset.json"
@@ -93,7 +97,7 @@ def main(args):
         notes.to_csv(args.output_directory + "/" + NOVEL_WRONG_CONTEXT_COMMUNITY_NOTES, sep="\t", index=False)
 
     # Step 3: Get the actual tweets
-    print("\n\nStep 3: Get the actual tweets")
+    print("\n\nStep 3: Get the actual tweets from twitter via their API")
    
     id_collector = IDTwitterCollector(open("twitter_api/bearer.key").read().strip())
     ids_list = notes["tweetId"].tolist()
@@ -153,25 +157,33 @@ def main(args):
     else:
         add_contextual_or_misleading_image_labels.main(args.output_directory + "/" + TWEETS_WITH_COMMUNITY_NOTES, args.output_directory + "/" + CONTEXTUAL_OR_MISLEADING_IMAGE_LABELS)
 
-    # Step 6: Combine this data with the existing dataset to create a new dataset
-    print("\n\nStep 6: Combine this data with the existing dataset to create a new dataset")
+    # Step 6: Add topical categories to the tweets
+    print("\n\nStep 6: Add topical categories to the tweets")
+    if os.path.exists(args.output_directory + "/" + TWEETS_WITH_TOPICAL_CATEGORIES):
+        print(f"Skipping step 6 as {args.output_directory + '/' + TWEETS_WITH_TOPICAL_CATEGORIES} already exists")
+    else:
+        add_topical_category.main(args.output_directory + "/" + CONTEXTUAL_OR_MISLEADING_IMAGE_LABELS, args.output_directory + "/" + TWEETS_WITH_TOPICAL_CATEGORIES)
+
+
+    # Step 7: Combine this data with the existing dataset to create a new dataset
+    print("\n\nStep 7: Combine this data with the existing dataset to create a new dataset")
     if os.path.exists(args.output_directory + "/" + FINAL_DATASET):
-        print(f"Skipping step 6 as {args.output_directory + '/' + FINAL_DATASET} already exists")
+        print(f"Skipping step 7 as {args.output_directory + '/' + FINAL_DATASET} already exists")
     else:
         with open(args.current_dataset, "r") as f:
             existing_data = json.load(f)
 
-        with open(args.output_directory + "/" + CONTEXTUAL_OR_MISLEADING_IMAGE_LABELS, "r") as f:
+        with open(args.output_directory + "/" + TWEETS_WITH_TOPICAL_CATEGORIES, "r") as f:
             new_data = json.load(f)
 
         final_data = existing_data + new_data
         with open(args.output_directory + "/" + FINAL_DATASET, "w") as f:
             json.dump(final_data, f, indent=4)
 
-    # Step 7: Create a contextual only dataset
-    print("\n\nStep 7: Create a contextual only dataset")
+    # Step 8: Create a contextual only dataset
+    print("\n\nStep 8: Create a contextual only dataset")
     if os.path.exists(args.output_directory + "/" + OOC_COMMUNITY_NOTES):
-        print(f"Skipping step 7 as {args.output_directory + '/' + OOC_COMMUNITY_NOTES} already exists")
+        print(f"Skipping step 8 as {args.output_directory + '/' + OOC_COMMUNITY_NOTES} already exists")
     else:
         # load the final dataset filter if llm_image_classification is contextual e.g. ""llm_image_classification": "contextual","
         with open(args.output_directory + "/" + FINAL_DATASET, "r") as f:

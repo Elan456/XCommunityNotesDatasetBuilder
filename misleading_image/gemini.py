@@ -106,6 +106,50 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
 
     return tweets
 
+def gemini_add_topical_categories(tweets: List[TweetWithContext]):
+    """
+    Uses Gemini to add a classification to each tweet's image as either "contextual" or "misleading"
+    Returns the same list of tweets with the added classification to each object
+    """
+    start_time = time.time()
+    requests_made = 0
+
+    with open("misleading_image/prompts/topical_categories_2.txt", "r") as f:
+        prompt_base = f.read()
+    
+    iterator = tqdm(tweets)
+    iterator.set_description("Adding topical categories via Gemini Calls")
+    for tweet in iterator:
+        rpm = requests_made / (time.time() - start_time) / 60
+        if rpm > gemini.get_max_rpm():
+            print("Current RPM is ", rpm, " sleeping for 10 seconds")
+            time.sleep(10)
+
+        prompt = []
+        prompt.append(f"Tweet: {tweet.text}")
+        prompt.append(f"Community Note: {tweet.community_note}")
+        prompt.append(tweet.image)
+        prompt.append(prompt_base)
+     
+        response = gemini.generate(prompt)
+        requests_made += 1
+
+        # From the first '{' to the last '}', convert to json
+        response_text = response.text
+        start = response_text.find("{")
+        end = response_text.rfind("}")
+        response_text = response_text[start:end+1]
+        try:
+            response_json = json.loads(response_text)
+            tweet.topical_categories = response_json["topical_categories"]
+            tweet.full_topical_category_response = response_text
+        except ValueError:
+            print("Error collecting the topical category: ", response.text)
+            tweet.topical_categories = "unknown"
+            tweet.full_topical_category_response = "Error collecting the topical category. Full response: " + str(response)
+
+    return tweets
+
 if __name__ == "__main__": # Quick test
     tweet_misleading = TweetWithContext("Sex offending rate of women: 3 per one million Sex offending rate of men: 395 per million Sex offending rates of transwomen: 1,916 per million",
                             "misleading_image/imgs/sex_offending.jpg", 
@@ -114,4 +158,10 @@ if __name__ == "__main__": # Quick test
     tweet_contextual = TweetWithContext("Jaffa Tel Aviv is not safe.","misleading_image/imgs/moscow_fire.jpg",
                                         "The image is from a gas explosion which happened in Moscow in April 2009.  https://ria.ru/20090510/170619872.html")
     
-    gemini_filter_misleading_images([tweet_misleading, tweet_contextual])
+    # gemini_filter_misleading_images([tweet_misleading, tweet_contextual])
+
+    out = gemini_add_topical_categories([tweet_misleading, tweet_contextual])
+    for tweet in out:
+        print(tweet.topical_category)
+        print(tweet.full_topical_category_response)
+        print("\n\n")
