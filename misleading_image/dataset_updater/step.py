@@ -19,7 +19,7 @@ class Step:
         self.preconditions = preconditions
         self.action = action
 
-    def execute(self, checkpoint: Checkpoint):
+    def execute(self, checkpoint):
         logger = logging.getLogger(__name__)
         try:
             if all(step in checkpoint.executed_steps for step in self.preconditions):
