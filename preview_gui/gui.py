@@ -29,14 +29,31 @@ def display_tweet(tweet):
                 st.image(img, caption=image_url, use_container_width=True)
 
     with col3:
-        st.markdown("### LLM Classification")
-        st.write(tweet['llm_image_classification'])
-
-        st.markdown("### LLM Reasoning")
-        st.write(tweet['full_llm_image_response'])
+        try:
+            st.markdown("### LLM Classification")
+            st.write(tweet['llm_image_classification'])
+        except KeyError:
+            pass 
+        
+        try:
+            st.markdown("### LLM Reasoning")
+            st.write(tweet['full_llm_image_response'])
+        except KeyError:
+            pass
+        
+        try:
+            st.markdown("### LLM Topical Categories")
+            st.write(tweet['topical_categories'])
+        except KeyError:
+            pass
 
     st.markdown("### Community Note Summary")
     st.write(tweet['community_note']['summary'])
+
+    # if 'llm_community_note' then show it
+    if 'llm_community_note' in tweet:
+        st.markdown("### LLM Community Note")
+        st.write(tweet['llm_community_note'])
 
     if st.button("Show Full Community Note", key=f"expand_{tweet['id']}"):
         st.json(tweet['community_note'])
