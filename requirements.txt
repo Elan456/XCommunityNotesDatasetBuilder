@@ -2,6 +2,7 @@ pandas
 numpy
 twscrape
 google-generativeai
+google-genai
 pillow
 tweepy
 streamlit

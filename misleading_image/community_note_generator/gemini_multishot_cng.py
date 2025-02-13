@@ -55,7 +55,8 @@ def main(args):
         prompt.append(T.image)
         prompt.append("Community Note: " + T.community_note)
 
-    prompt.append("For the following tweet, generate a community note:")
+    # Need the word "grounding" in the prompt to use Google grounding
+    prompt.append("\nFor the following tweet, generate a community note using Google grounding to grab additional context and find the origin of the image:")
 
 
     output_json = []
@@ -64,6 +65,14 @@ def main(args):
     # For each test example, generate a community note
     # Do these each independently
     gemini = Gemini("misleading_image/google.key")
+
+    test_indices = [300]
+
+    # Test grounding with pyramids question
+    response = gemini.generate(["Does the USA require a voter ID?"], google_ground=True)
+    print(response.to_json_dict())
+
+
     for i in test_indices:
         copy_prompt = prompt.copy()
         T = TweetWithContext(
@@ -71,20 +80,38 @@ def main(args):
             dataset[i]['image_urls'][0],
             dataset[i]['community_note']['summary']
         )
-        copy_prompt.append("Tweet: " + T.text)
+        copy_prompt.append("\nTweet: " + T.text)
         copy_prompt.append("Image: ")
         copy_prompt.append(T.image)
-        copy_prompt.append("Community Note: ")
-        response = gemini.generate(copy_prompt)
+        copy_prompt.append("Place your community note (which must be augmented using Google grounding) here (if the image is in a meme format, focus on the image within the meme, use Reuters or Snopes):")
+        response = gemini.generate(copy_prompt, google_ground=args.google_ground)
         print("prompt length: ", len(copy_prompt))
         print(response.text)
 
         # Append to a file the llm cn, and the actual cn
-        with open("misleading_image/generated_community_notes.txt", "a") as f:
+        with open(f"misleading_image/generated_community_notes_{i}.txt", "w") as f:
+            f.write("Prompt:\n")
+            for line in copy_prompt:
+                if type(line) is str:
+                    # Remove non-ascii characters
+                    line = ''.join([i if ord(i) < 128 else ' ' for i in line])
+                    f.write(line + "\n")
+                else:
+                    f.write("IMAGE" + "\n")
+            f.write("\n")
+            f.write("\n===============================\n\n")
             f.write("Generated CN: " + response.text + "\n")
+
+            f.write(str(response)+ "\n")
+            f.write("Grounding metadata from canidate 0: " + str(response.candidates[0].grounding_metadata))
+
+            # dict to json 
+            print(response.to_json_dict())
 
             # Remove non-ascii characters
             T.community_note = ''.join([i if ord(i) < 128 else ' ' for i in T.community_note])
+
+            f.write("\n===============================\n\n")
             f.write("Actual CN: " + T.community_note + "\n")
             f.write("\n")
 
@@ -107,6 +134,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", type=str, help="Path to the dataset with community notes, tweet text, and image paths", required=True)
     parser.add_argument("--example_count", type=int, help="How many examples to randomly select from the dataset and put in the prompt", default=3)
     parser.add_argument("--test_count", type=int, help="How many instances to randomly select from the dataset and test the model on", default=3)
+    parser.add_argument("--google_ground", type=bool, help="Whether Gemini uses Google grounding https://ai.google.dev/gemini-api/docs/grounding?lang=python", default=True)
     args = parser.parse_args()
     
     main(args)
