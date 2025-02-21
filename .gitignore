@@ -7,3 +7,4 @@ accounts.db
 *.json
 *.flag
 *.zip
+*.csv
