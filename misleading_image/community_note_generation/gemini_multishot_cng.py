@@ -4,14 +4,37 @@ Will generate a LLM community note summary for a new tweet text + image
 """
 
 import argparse 
-import os 
 from ..gemini import Gemini
 import json 
 import random
 from ..twc import TweetWithContext
 import time 
 
+def generate_community_note(tweet_text, tweet_image, gemini: Gemini, google_ground: bool) -> str:
+    prompt = []
 
+    if google_ground:
+        prompt_path = "misleading_image/prompts/community_note_generation_grounding_1.txt"
+    else:
+        prompt_path = "misleading_image/prompts/community_note_generation_1.txt"
+
+    with open(prompt_path) as f:
+        prompt.append(f.read())
+
+    prompt.append("Tweet: " + tweet_text)
+    prompt.append("Image: ")
+    prompt.append(tweet_image)
+
+    # Need the word "grounding" in the prompt to use Google grounding
+    if not google_ground:
+        prompt.append("Community Note:")
+    else:
+        prompt.append("Google Grounded Community Note:")
+
+    # print("Final prompt:", prompt)
+
+    response = gemini.generate(prompt, google_ground=google_ground)
+    return response
 
 def main(args):
     # load the dataset with json
@@ -38,75 +61,24 @@ def main(args):
             print("Couldn't find enough examples with image urls")
             return
 
-    prompt = []
-
-    with open("misleading_image/prompts/community_note_generation_1.txt") as f:
-        prompt.append(f.read())
-
-    for i in example_indices:
-        T = TweetWithContext(
-            dataset[i]['text'],
-            dataset[i]['image_urls'][0],
-            dataset[i]['community_note']['summary']
-        )
-        prompt.append("Example #" + str(i + 1))
-        prompt.append("Tweet: " + T.text)
-        prompt.append("Image: ")
-        prompt.append(T.image)
-        prompt.append("Community Note: " + T.community_note)
-
-    # Need the word "grounding" in the prompt to use Google grounding
-    prompt.append("\nFor the following tweet, generate a community note using Google grounding to grab additional context and find the origin of the image:")
-
-
+    gemini = Gemini("misleading_image/google.key")
     output_json = []
 
-
-    # For each test example, generate a community note
-    # Do these each independently
-    gemini = Gemini("misleading_image/google.key")
-
-    test_indices = [300]
-
-    # Test grounding with pyramids question
-    response = gemini.generate(["Does the USA require a voter ID?"], google_ground=True)
-    print(response.to_json_dict())
-
-
     for i in test_indices:
-        copy_prompt = prompt.copy()
         T = TweetWithContext(
             dataset[i]['text'],
             dataset[i]['image_urls'][0],
             dataset[i]['community_note']['summary']
         )
-        copy_prompt.append("\nTweet: " + T.text)
-        copy_prompt.append("Image: ")
-        copy_prompt.append(T.image)
-        copy_prompt.append("Place your community note (which must be augmented using Google grounding) here (if the image is in a meme format, focus on the image within the meme, use Reuters or Snopes):")
-        response = gemini.generate(copy_prompt, google_ground=args.google_ground)
-        print("prompt length: ", len(copy_prompt))
+        response = generate_community_note(T, gemini, args.google_ground)
+        print("Generated community note for tweet index:", i)
         print(response.text)
 
         # Append to a file the llm cn, and the actual cn
         with open(f"misleading_image/generated_community_notes_{i}.txt", "w") as f:
-            f.write("Prompt:\n")
-            for line in copy_prompt:
-                if type(line) is str:
-                    # Remove non-ascii characters
-                    line = ''.join([i if ord(i) < 128 else ' ' for i in line])
-                    f.write(line + "\n")
-                else:
-                    f.write("IMAGE" + "\n")
-            f.write("\n")
-            f.write("\n===============================\n\n")
             f.write("Generated CN: " + response.text + "\n")
-
             f.write(str(response)+ "\n")
-            f.write("Grounding metadata from canidate 0: " + str(response.candidates[0].grounding_metadata))
-
-            # dict to json 
-            print(response.to_json_dict())
+            f.write("Grounding metadata from candidate 0: " + str(response.candidates[0].grounding_metadata))
 
             # Remove non-ascii characters
             T.community_note = ''.join([i if ord(i) < 128 else ' ' for i in T.community_note])
@@ -122,12 +94,6 @@ def main(args):
     # Save the output json
     with open("misleading_image/generated_community_notes.json", "w") as f:
         json.dump(output_json, f, indent=4)
-
-
-        
-
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a community note summary for a tweet")

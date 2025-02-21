@@ -20,16 +20,20 @@ class Gemini:
     
     def generate(self, prompt, google_ground=False):
         # genai.configure(api_key=self.keys[self.current_key_index])
-        self.current_key_index = (self.current_key_index + 1) % len(self.keys)
 
         # self.model = genai.GenerativeModel("gemini-2.0-flash")
         done = False 
         while not done: 
+            self.current_key_index = (self.current_key_index + 1) % len(self.keys)
+            client = genai.Client(api_key=self.keys[self.current_key_index])
+
             try:
                 if not google_ground:
-                    response = self.model.generate_content(prompt)
+                    response = client.models.generate_content(
+                            model='gemini-2.0-flash',
+                            contents=prompt
+                        )
                 else:
-                    client = genai.Client(api_key=self.keys[self.current_key_index])
                     response = client.models.generate_content(
                             model='gemini-2.0-flash',
                             contents=prompt,
@@ -46,8 +50,10 @@ class Gemini:
             except ValueError as e:  # TODO: Replace with a better exception
                 print("API Exception: ", e)
                 print("Sleeping, and switching to next key")
-                genai.configure(api_key=self.keys[self.current_key_index])
-                self.current_key_index = (self.current_key_index + 1) % len(self.keys)
+                time.sleep(10)
+            except Exception as e:
+                print("Exception: ", e)
+                print("Sleeping, and switching to next key")
                 time.sleep(10)
         return response
     
