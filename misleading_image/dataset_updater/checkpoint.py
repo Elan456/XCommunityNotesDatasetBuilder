@@ -53,6 +53,7 @@ class Checkpoint:
     def __str__(self):
         return "Checkpoint with steps: " + ", ".join([step.name for step in self.executed_steps])
 
+
     def save(self, file_name=None):
         """
         Save the checkpoint to a file.
@@ -62,9 +63,10 @@ class Checkpoint:
         if not file_name:
             file_name = f"checkpoint_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_"
             file_name += "-".join([step.name for step in self.executed_steps]) + ".pkl"
-            file_path = os.path.join(self.output_directory, file_name)
-        else:
-            file_path = os.path.join(self.output_directory, file_name)
+        elif not file_name.endswith(".pkl"):
+            file_name += ".pkl"
+
+        file_path = os.path.join(self.output_directory, file_name)
 
         with open(file_path, "wb") as f:
             pickle.dump(self, f)

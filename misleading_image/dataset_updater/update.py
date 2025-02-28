@@ -1,11 +1,8 @@
 import argparse
 
-from step import Step
 from checkpoint import Checkpoint
+from step import Step
 from steps import *
-from checkpoint import Checkpoint
-from step import Step
-from steps import filter_community_notes_step
 
 
 def initialize(output_path="./output", checkpoint_name=None) -> str:
@@ -26,6 +23,8 @@ def initialize(output_path="./output", checkpoint_name=None) -> str:
 valid_steps = [
     filter_community_notes_step,
     remove_existing_notes_step,
+    reverse_image_search_step,
+    dememe_reverse_image_search_step,
 ]
 
 
@@ -51,21 +50,21 @@ def main():
     if args.step_name == "initialize":
         checkpoint_file_path = initialize(output_path=args.output_path, checkpoint_name=args.checkpoint_name)
         print(f"Initialized checkpoint saved at: {checkpoint_file_path}")
-    else:
-        if not args.checkpoint_path:
-            raise ValueError("checkpoint_path is required for steps other than 'initialize'.")
+        return
 
-        # Load the checkpoint
-        checkpoint = Checkpoint.load(args.checkpoint_path)
+    if not args.checkpoint_path:
+        raise ValueError("checkpoint_path is required for steps other than 'initialize'.")
 
-        # Find the step by name
-        step = next((s for s in valid_steps if s.name == args.step_name), None)
-        if not step:
-            raise ValueError(f"Step '{args.step_name}' not found in valid steps.")
+    # Load the checkpoint
+    checkpoint = Checkpoint.load(args.checkpoint_path)
 
-        # Execute the step with the provided keyword arguments
-        step.execute(checkpoint, args.checkpoint_name, **args.kwargs)
+    # Find the step by name
+    step = next((s for s in valid_steps if s.name == args.step_name), None)
+    if not step:
+        raise ValueError(f"Step '{args.step_name}' not found in valid steps.")
 
+    # Execute the step with the provided keyword arguments
+    step.execute(checkpoint, args.checkpoint_name, **args.kwargs)
 
 if __name__ == "__main__":
     main()

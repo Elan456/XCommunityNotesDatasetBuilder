@@ -1,41 +1,30 @@
-from typing import List, Callable
+import inspect
 import logging
-
+from typing import List, Callable
 
 class Step:
-    """
-    Represents an action to be taken on a dataset. Each step can have preconditions (other steps that must
-    be completed before this one) and can execute an associated action.
-
-    :param name: The name of the step.
-    :param preconditions: A list of Step instances that must be executed before this step.
-    :param action: The function to execute when this step is run.
-    :param execution_args: List of argument names required by the action function.
-    """
-
-    def __init__(self, name: str, action: Callable, preconditions: List['Step'] = None,
-                 execution_args: List[str] = None):
+    def __init__(self, name: str, action: Callable, preconditions: List['Step'] = None, execution_args: List[str] = None):
         self.name = name
         self.preconditions = preconditions if preconditions else []
         self.action = action
         self.execution_args = execution_args if execution_args else []
 
     def execute(self, checkpoint, output_name=None, **kwargs):
-        """
-        Executes the step if all preconditions are met.
-
-        :param output_name: name of checkpoint output
-        :param checkpoint: The Checkpoint object to apply the action to.
-        :param kwargs: Arguments required by the action.
-        """
         logger = logging.getLogger(__name__)
 
         # Check if preconditions are met
         if all(step in checkpoint.executed_steps for step in self.preconditions):
-
             try:
+                # Check if kwargs match the expected parameters
+                # Check if kwargs match the expected parameters
+                sig = inspect.signature(self.action)
+                for param in sig.parameters.values():
+                    if param.name == 'checkpoint':
+                        continue
+                    if param.name not in kwargs and param.default == inspect.Parameter.empty:
+                        raise ValueError(f"Missing required argument: {param.name}")
+
                 # Execute the action
-                # import inspect and
                 self.action(checkpoint, **kwargs)
 
                 # Log the step execution
@@ -48,13 +37,9 @@ class Step:
                     return checkpoint_file_path
                 else:
                     logger.info(f"Step '{self.name}' already executed")
-
-
-
             except Exception as e:
                 logger.error(f"Failed to execute step '{self.name}': {e}")
                 raise
-
         else:
             unmet = [step.name for step in self.preconditions if step not in checkpoint.executed_steps]
             logger.warning(f"Preconditions not met for step '{self.name}': {unmet}")
