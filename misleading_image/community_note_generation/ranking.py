@@ -4,6 +4,8 @@ Runs each generation method on the test set and than does a tournament style ran
 
 import misleading_image.community_note_generation as cng 
 import pandas as pd 
+from .gemini import gemini_multishot_cng
+from .gemini import gemini_ris_cng
 
 test_set = cng.get_test_set("12-21-2024/tweets_with_community_notes.json")
 

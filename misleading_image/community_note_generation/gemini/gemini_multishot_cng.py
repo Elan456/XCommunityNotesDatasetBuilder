@@ -4,10 +4,10 @@ Will generate a LLM community note summary for a new tweet text + image
 """
 
 import argparse 
-from ..gemini import Gemini
+from ...gemini import Gemini
 import json 
 import random
-from ..twc import TweetWithContext
+from ...twc import TweetWithContext
 import time 
 
 def generate_community_note(tweet_text, tweet_image, gemini: Gemini, google_ground: bool) -> str:
