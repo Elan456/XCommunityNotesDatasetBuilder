@@ -6,3 +6,5 @@ google-genai
 pillow
 tweepy
 streamlit
+ace_tools
+matplotlib
