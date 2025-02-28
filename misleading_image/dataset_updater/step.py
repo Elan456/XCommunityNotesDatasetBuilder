@@ -2,6 +2,9 @@ import inspect
 import logging
 from typing import List, Callable
 
+from misleading_image.dataset_updater.checkpoint import Checkpoint
+
+
 class Step:
     def __init__(self, name: str, action: Callable, preconditions: List['Step'] = None, execution_args: List[str] = None):
         self.name = name
@@ -9,7 +12,7 @@ class Step:
         self.action = action
         self.execution_args = execution_args if execution_args else []
 
-    def execute(self, checkpoint, output_name=None, **kwargs):
+    def execute(self, checkpoint: Checkpoint, output_name=None, **kwargs):
         logger = logging.getLogger(__name__)
 
         # Check if preconditions are met

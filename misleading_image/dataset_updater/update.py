@@ -1,8 +1,8 @@
 import argparse
 
-from checkpoint import Checkpoint
-from step import Step
-from steps import *
+from misleading_image.dataset_updater.checkpoint import Checkpoint
+from .step import Step
+from .steps import *
 
 
 def initialize(output_path="./output", checkpoint_name=None) -> str:
