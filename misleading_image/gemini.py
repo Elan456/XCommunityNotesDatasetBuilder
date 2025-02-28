@@ -1,4 +1,5 @@
-import google.generativeai as genai
+# import google.generativeai as genai
+from google import genai
 from .twc import TweetWithContext
 from typing import List
 import os 
@@ -6,30 +7,53 @@ import json
 import PIL.Image as Image
 from tqdm import tqdm
 import time 
+from google.genai import types
 
 class Gemini:
     def __init__(self, keys_file):
         self.keys = [key.strip() for key in open(keys_file, "r").readlines()]
         self.current_key_index = 0
 
+
     def get_max_rpm(self):
         return len(self.keys) * 14
     
-    def generate(self, prompt):
-        genai.configure(api_key=self.keys[self.current_key_index])
-        self.current_key_index = (self.current_key_index + 1) % len(self.keys)
+    def generate(self, prompt, google_ground=False):
+        # genai.configure(api_key=self.keys[self.current_key_index])
 
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        # self.model = genai.GenerativeModel("gemini-2.0-flash")
         done = False 
         while not done: 
+            self.current_key_index = (self.current_key_index + 1) % len(self.keys)
+            client = genai.Client(api_key=self.keys[self.current_key_index])
+
             try:
-                response = self.model.generate_content(prompt)
+                if not google_ground:
+                    response = client.models.generate_content(
+                            model='gemini-2.0-flash',
+                            contents=prompt
+                        )
+                else:
+                    response = client.models.generate_content(
+                            model='gemini-2.0-flash',
+                            contents=prompt,
+                            config=types.GenerateContentConfig(
+                                tools=[types.Tool(
+                                    google_search=types.GoogleSearchRetrieval(
+                                                dynamic_retrieval_config=types.DynamicRetrievalConfig(
+                                                dynamic_threshold=0.0))
+                                )]
+                            )
+                        )
+                                                        
                 done = True
-            except Exception as e:
-                print("Exception when generating content: ", e)
+            except ValueError as e:  # TODO: Replace with a better exception
+                print("API Exception: ", e)
                 print("Sleeping, and switching to next key")
-                genai.configure(api_key=self.keys[self.current_key_index])
-                self.current_key_index = (self.current_key_index + 1) % len(self.keys)
+                time.sleep(10)
+            except Exception as e:
+                print("Exception: ", e)
+                print("Sleeping, and switching to next key")
                 time.sleep(10)
         return response
     
