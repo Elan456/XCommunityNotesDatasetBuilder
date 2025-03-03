@@ -2,7 +2,7 @@ import argparse
 import os
 import json
 import sys
-from checkpoint import Checkpoint
+from misleading_image.dataset_updater.checkpoint import Checkpoint
 
 def write_checkpoint_to_json(checkpoint_path, output_file):
     checkpoint = Checkpoint.load(checkpoint_path)

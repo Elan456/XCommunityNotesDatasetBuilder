@@ -53,7 +53,6 @@ def remove_meme_text(pil_image):
     bounding_boxes = merge_boxes(bounding_boxes)
 
     if not bounding_boxes:
-        print("No meme text detected.")
         return pil_image, None
 
     # Determine cropping boundaries
@@ -71,17 +70,14 @@ def remove_meme_text(pil_image):
 
         if min_y < height / 2:
             # Meme text is at the top
-            print(f"Cropping image to exclude text from y=0 to y={max_y}")
             cropped_image = image[max_y:height, :, :]
         else:
             # Meme text is at the bottom
-            print(f"Cropping image to exclude text from y={min_y} to y={height}")
             cropped_image = image[:min_y, :, :]
 
         cropped_pil_image = Image.fromarray(cv2.cvtColor(cropped_image, cv2.COLOR_BGR2RGB))
         return cropped_pil_image if cropped_pil_image.size[1] > 0 else pil_image, " ".join(cropped_text)  # Avoid empty images
 
-    print("Detected text too small to crop effectively.")
     return pil_image, None
 
 def main():

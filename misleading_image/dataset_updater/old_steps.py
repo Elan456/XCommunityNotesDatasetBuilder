@@ -1,5 +1,9 @@
-from checkpoint import Checkpoint
-from step import Step
+import time
+
+from serpapi import GoogleSearch
+
+from .checkpoint import Checkpoint
+from .step import Step
 # import wrong_context_community_notes_filter
 # from twitter_api.collector.id_collector import IDTwitterCollector
 # from misleading_image import add_contextual_or_misleading_image_labels
@@ -143,35 +147,34 @@ def reverse_image_search(checkpoint, dataset_json=None):
         with open(dataset_json, 'r') as f:
             current_dataset = json.load(f)
     else:
-        current_dataset = Checkpoint.load(checkpoint).dataset
+        current_dataset = checkpoint.dataset
 
-    reverseImageSearchResults = []
+    with open("misleading_image/dataset_updater/serp.key", 'r') as f:
+        serp_key = f.read().strip()
 
     # for each tweet, need to send img url to API and get a response
     # store tweetId, imgURL, and API response in a list
     for tweet in current_dataset:
-        tweetId = tweet['id']
         imgURL = tweet['image_urls'][0]
         # send imgURL to API and get response
         # store response in reverseImageSearchResults
-        response = [
-    {
-        "position": 1,
-        "title": "The New Obama Administration Defense Of Police Militarization: The Boston Bombing",
-        "link": "https://www.buzzfeednews.com/article/evanmcsan/the-boston-defense",
-        "source": "BuzzFeed News",
-        "source_icon": "https://serpapi.com/searches/67b8c688c24d6096bd5718f2/images/fa4176daf8c26db1febd592788b976b52782c6eaee8a4c5a493513438827a106.png",
-        "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGwd_HIFBTsVS8mXIbuiEcXswNFYTl9YtS13YwIlXPqc3Ei6R_",
-        "thumbnail_width": 183,
-        "thumbnail_height": 275,
-        "image": "https://img.buzzfeed.com/buzzfeed-static/static/2014-12/7/23/campaign_images/webdr04/the-new-obama-administration-defense-of-police-mi-2-16197-1418012533-5_big.jpg",
-        "image_width": 236,
-        "image_height": 355
-    },]
-        reverseImageSearchResults.append({"tweetId": tweetId, "imgURL": imgURL, "response": response})
+        params = {
+            "engine": "google_lens",
+            "url": imgURL,
+            "api_key": serp_key,
+        }
 
+        search = GoogleSearch(params)
+        results = search.get_dict()
+
+        try:
+            visual_matches = results["visual_matches"][:16]
+            if visual_matches:
+                tweet['reverse_image_search_results'] = visual_matches
+        except KeyError:
+            tweet['reverse_image_search_results'] = []
         # save reverse image results as a new checkpoint
-    checkpoint.dataset = reverseImageSearchResults
+    checkpoint.dataset = current_dataset
 
 def dememe_reverse_image_search(checkpoint, dataset_json=None, rvrse_checkpoint=None):
     """
@@ -192,7 +195,7 @@ def dememe_reverse_image_search(checkpoint, dataset_json=None, rvrse_checkpoint=
         with open(dataset_json, 'r') as f:
             current_dataset = json.load(f)
     else:
-        current_dataset = Checkpoint.load(checkpoint).get_dataset()
+        current_dataset = checkpoint.dataset
 
     # Load normal reverse image search results if provided
     normal_reverse_image_search_results = {}
@@ -219,9 +222,11 @@ def dememe_reverse_image_search(checkpoint, dataset_json=None, rvrse_checkpoint=
         # Dememe the image
         cleaned_image, cropped_text = remove_meme_text(my_img)
 
+        print(cropped_text)
+
         # If the image was not cropped, use the normal reverse image search result if available
         if not cropped_text and tweetId in normal_reverse_image_search_results:
-            dememeReverseImageSearchResults.append({"tweetId": tweetId, "removedText": None, "response": normal_reverse_image_search_results[tweetId]['response']})
+            tweet['dememe_image_search_results'] = {"response": normal_reverse_image_search_results[tweetId]['response'], "removedText": None}
         else:
             # Host image temporarily and send hostedImage URL to API and get response
             # Store response in reverseImageSearchResults
@@ -240,10 +245,11 @@ def dememe_reverse_image_search(checkpoint, dataset_json=None, rvrse_checkpoint=
                     "image_height": 355
                 },
             ]
-            dememeReverseImageSearchResults.append({"tweetId": tweetId, "removedText": cropped_text, "response": response})
+            tweet['dememe_image_search_results'] = {"response": response, "removedText": cropped_text}
+            # dememeReverseImageSearchResults.append({"tweetId": tweetId, "removedText": cropped_text, "response": response})
 
     # Save reverse image results as a new checkpoint
-    checkpoint.dataset = dememeReverseImageSearchResults
+    checkpoint.dataset = current_dataset
 
 """
 when adding a new feature, need to define a new step before combine datasets, and apply that new step on the current
