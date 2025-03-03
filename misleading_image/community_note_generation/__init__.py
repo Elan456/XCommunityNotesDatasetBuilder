@@ -27,7 +27,8 @@ def get_test_set(dataset_path: str) -> pd.DataFrame:
         try:
             response = requests.get(url)
             return response.status_code == 200
-        except:
+        except requests.exceptions.RequestException as e:
+            print(e)
             return False
         
 
@@ -40,7 +41,7 @@ def get_test_set(dataset_path: str) -> pd.DataFrame:
     df = df.sample(10)
 
     # Take the text, image_urls, and community_note["summary"] as columns
-    generation_df = df[["text", "image_urls", "tweet_url"]]
+    generation_df = df[["id", "text", "image_urls", "tweet_url", "reverse_image_search_results"]]
     generation_df["original_cn"] = df["community_note"].apply(lambda x: x["summary"])
 
     return generation_df

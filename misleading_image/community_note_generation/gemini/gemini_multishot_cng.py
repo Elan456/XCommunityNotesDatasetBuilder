@@ -10,7 +10,7 @@ import random
 from ...twc import TweetWithContext
 import time 
 
-def generate_community_note(tweet_text, tweet_image, gemini: Gemini, google_ground: bool) -> str:
+def generate_community_note(tweet_text, tweet_image, gemini: Gemini, google_ground = False) -> str:
     prompt = []
 
     if google_ground:

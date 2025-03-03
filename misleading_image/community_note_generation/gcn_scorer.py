@@ -140,6 +140,7 @@ def rank(df: pd.DataFrame, original_column: str, generated_columns: list[str]):
     - Updated ELO Scores
     """
     elo_scores = initialize_elo(df, generated_columns)
+    wins_losses = {col: {"wins": 0, "losses": 0} for col in generated_columns}
     results = []
 
     print("Rank start")
@@ -157,6 +158,15 @@ def rank(df: pd.DataFrame, original_column: str, generated_columns: list[str]):
             winner_col = a if result['choice'].lower() == 'a' else b
             loser_col = b if result['choice'].lower() == 'a' else a
 
+            # Update wins and losses
+            if result['choice'].lower() == 'a':
+                wins_losses[a]["wins"] += 1
+                wins_losses[b]["losses"] += 1
+
+            else:
+                wins_losses[b]["wins"] += 1
+                wins_losses[a]["losses"] += 1
+
             print(f"{a} vs {b}, Winner: {winner_col}")
 
             # Update ELO scores
@@ -164,6 +174,7 @@ def rank(df: pd.DataFrame, original_column: str, generated_columns: list[str]):
 
             # Store results
             results.append({
+                "Id": row["id"],
                 "Matchup": f"A: {a} vs B: {b}",
                 "Winner": winner_col,
                 "Reason": result['reason'],
@@ -176,14 +187,23 @@ def rank(df: pd.DataFrame, original_column: str, generated_columns: list[str]):
 
     # Convert to DataFrame
     results_df = pd.DataFrame(results)
+
+
+    # Ranking will include elo scores and wins/losses
+    ranking_results = []
+    for col in generated_columns:
+        ranking_results.append({
+            "Generated_Note": col,
+            "ELO": elo_scores[col],
+            "Wins": wins_losses[col]["wins"],
+            "Losses": wins_losses[col]["losses"]
+        })
     
     # Display rankings
-    ranking_df = pd.DataFrame(elo_scores.items(), columns=["Generated_Note", "ELO"]).sort_values(by="ELO", ascending=False)
+    ranking_df = pd.DataFrame(ranking_results)
+    ranking_df = ranking_df.sort_values(by='ELO', ascending=False)
 
     return results_df, ranking_df
-
-    
-
 
 if __name__ == "__main__":
     # Quick test
