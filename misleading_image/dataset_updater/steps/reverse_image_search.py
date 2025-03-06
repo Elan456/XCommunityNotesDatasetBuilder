@@ -31,7 +31,7 @@ def search_with_serpapi(current_dataset):
             tweet['reverse_image_search_results'] = []
 
 def search_with_google_vision(currentDataset):
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'client_file_googlevision.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'misleading_image/dataset_updater/google_cloud/client_file_googlevision.json'
     client = vision.ImageAnnotatorClient()
     image = vision.Image()
 
@@ -85,11 +85,5 @@ def reverse_image_search(checkpoint, dataset_json=None, search_method='google_vi
         # Load the serpapi key from the file
         search_with_serpapi(current_dataset)
     checkpoint.dataset = current_dataset
-
-
-
-
-    with open("misleading_image/dataset_updater/serp.key", 'r') as f:
-        serp_key = f.read().strip()
 
 reverse_image_search_step = Step(name="Reverse Image Search", action=reverse_image_search, execution_args=['dataset_json', 'checkpoint'], )

@@ -12,6 +12,7 @@ from .steps.remove_existing_notes import remove_existing_notes_step
 # from .steps.collect_tweets import collect_tweets_step
 # from .steps.add_topical_categories import add_topical_categories_step
 # from .steps.combine_datasets import combine_datasets_step
+from .steps.image_annotation import image_link_annotation_step
 
 
 def initialize(output_path="./output", checkpoint_name=None) -> str:
@@ -34,6 +35,7 @@ valid_steps = [
     remove_existing_notes_step,
     reverse_image_search_step,
     dememe_reverse_image_search_step,
+    image_link_annotation_step,
 ]
 
 
