@@ -26,7 +26,7 @@ def remove_meme_text(pil_image):
         if conf > 60 and len(text) > 2:
             bounding_boxes.append((x, y, w, h))
 
-    def merge_boxes(boxes, threshold=15):
+    def merge_boxes(boxes, threshold=75):
         """Merge overlapping bounding boxes into larger text regions."""
         if not boxes:
             return []
@@ -37,8 +37,8 @@ def remove_meme_text(pil_image):
         for x, y, w, h in boxes[1:]:
             prev_x, prev_y, prev_w, prev_h = merged_boxes[-1]
 
-            # Merge if close in y-direction
-            if abs(y - prev_y) < threshold:
+            # Merge if close in y-direction considering the height of the previous box
+            if y <= prev_y + prev_h + threshold:
                 new_x = min(prev_x, x)
                 new_y = min(prev_y, y)
                 new_w = max(prev_x + prev_w, x + w) - new_x
@@ -59,24 +59,37 @@ def remove_meme_text(pil_image):
     min_y = min(box[1] for box in bounding_boxes)
     max_y = max(box[1] + box[3] for box in bounding_boxes)
 
-    # Ensure we are cropping a significant portion
-    if max_y - min_y > height * 0.10:
-        for i in range(len(data["text"])):
-            text = data["text"][i].strip()
-            x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
-            if min_y <= y <= max_y or min_y <= y + h <= max_y:
-                if text:
-                    cropped_text.append(text)
+    # Check if the min or max is in the top or bottom 10% of the image
+    top_threshold = height * 0.10
+    bottom_threshold = height * 0.90
 
-        if min_y < height / 2:
-            # Meme text is at the top
-            cropped_image = image[max_y:height, :, :]
+    if min_y < top_threshold or max_y > bottom_threshold:
+        # Ensure we are cropping a significant portion but not more than 50% of the image height
+        max_crop_height = height * 0.50
+
+        if min_y < height/2:
+            crop_height = max_y
         else:
-            # Meme text is at the bottom
-            cropped_image = image[:min_y, :, :]
+            crop_height = height-min_y
 
-        cropped_pil_image = Image.fromarray(cv2.cvtColor(cropped_image, cv2.COLOR_BGR2RGB))
-        return cropped_pil_image if cropped_pil_image.size[1] > 0 else pil_image, " ".join(cropped_text)  # Avoid empty images
+        if height * 0.10 < crop_height <= max_crop_height:
+            for i in range(len(data["text"])):
+                text = data["text"][i].strip()
+                x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+                if min_y <= y <= max_y or min_y <= y + h <= max_y:
+                    if text:
+                        cropped_text.append(text)
+
+            if min_y < height / 2:
+                # Meme text is at the top
+                cropped_image = image[max_y:height, :, :]
+            else:
+                # Meme text is at the bottom
+                cropped_image = image[:min_y, :, :]
+
+            cropped_pil_image = Image.fromarray(cv2.cvtColor(cropped_image, cv2.COLOR_BGR2RGB))
+            return cropped_pil_image if cropped_pil_image.size[1] > 0 else pil_image, " ".join(
+                cropped_text)  # Avoid empty images
 
     return pil_image, None
 
