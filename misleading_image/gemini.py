@@ -50,11 +50,11 @@ class Gemini:
             except ValueError as e:  # TODO: Replace with a better exception
                 print("API Exception: ", e)
                 print("Sleeping, and switching to next key")
-                time.sleep(10)
+                time.sleep(3)
             except Exception as e:
                 print("Exception: ", e)
                 print("Sleeping, and switching to next key")
-                time.sleep(10)
+                time.sleep(3)
         return response
     
 gemini = Gemini("misleading_image/google.key")  # Initialize the gemini model

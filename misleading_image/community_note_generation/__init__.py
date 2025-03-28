@@ -3,8 +3,16 @@ import json
 import pandas as pd 
 import random 
 import requests
+import re
 
-def get_test_set(dataset_path: str) -> pd.DataFrame:
+def clean_text(text):
+    # Remove non-ASCII characters
+    text = re.sub(r'[^\x00-\x7F]+', ' ', text)
+    # Replace newlines, tabs, and commas with spaces
+    text = text.replace('\n', '&newline').replace('\t', '&tab').replace(',', '&comma').replace('\"', '&quote')
+    return text
+
+def get_test_set(dataset_path: str, size=10) -> pd.DataFrame:
     """
     Load the dataset and return a DataFrame with columns 'text', 'image_urls', 'community_note'.
     """
@@ -19,7 +27,7 @@ def get_test_set(dataset_path: str) -> pd.DataFrame:
 
     # Sample down to 50
     random.seed(0)
-    df = df.sample(50)
+    df = df.sample(int(size*1.2))
 
     # Filter out rows where the image_url is broken
     # i.e. the image_url returns a 404
@@ -34,14 +42,17 @@ def get_test_set(dataset_path: str) -> pd.DataFrame:
 
     print("Checking image urls...")
     df = df[df["image_urls"].apply(lambda x: all(check_image_url(url) for url in x))]
-    print("Found {} good tweets out of 50".format(len(df)))
+    print("Found {} good tweets".format(len(df)))
 
     # Chose 15 random rows
     random.seed(0)
-    df = df.sample(10)
+    df = df.sample(size)
+
+    # Clean the tweet text
+    df["text"] = df["text"].apply(lambda x: clean_text(x))
 
     # Take the text, image_urls, and community_note["summary"] as columns
-    generation_df = df[["id", "text", "image_urls", "tweet_url", "reverse_image_search_results"]]
+    generation_df = df[["id", "text", "image_urls", "tweet_url", "reverse_image_search_results", "dememe_reverse_image_search_results"]].copy()
     generation_df["original_cn"] = df["community_note"].apply(lambda x: x["summary"])
 
     return generation_df

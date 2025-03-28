@@ -5,7 +5,7 @@ from io import BytesIO
 import json 
 
 
-def generate_community_note(tweet_text, tweet_image: Image, ris_results: dict, gemini: Gemini, google_ground = False, dememe = False, include_ris_thumbnails=False) -> str:
+def generate_community_note(tweet_text, tweet_image: Image, ris_results: dict, gemini: Gemini, google_ground = False, include_ris_thumbnails=False, multishot=True) -> str:
     prompt = []
 
     if google_ground:
@@ -16,18 +16,23 @@ def generate_community_note(tweet_text, tweet_image: Image, ris_results: dict, g
     with open(prompt_path) as f:
         prompt.append(f.read())
 
+    if multishot:
+        with open("misleading_image/prompts/community_note_examples.txt") as f:
+            prompt.append(f.read())
+
     # Take the first 3 matches
     prompt.append("We ran a reverse image search on the image and found the following matches, don't assume these are perfectly related to the original tweet:")
     for i in range(min(3, len(ris_results))):
-        prompt.append(f"# Match {i+1}")
-        prompt.append("Title:")
-        prompt.append(ris_results[i]['title'])
-        
-        prompt.append("Source:")
-        prompt.append(ris_results[i]['source'])
+        for mc in range(min(3, len(ris_results[i]["image_context"]))):
+            prompt.append(f"# Match {mc + i * 3 + 1}")
+            prompt.append("Title:")
+            prompt.append(ris_results[i]['image_context'][mc]['title'])
+            
+            prompt.append("Link:")
+            prompt.append(ris_results[i]["image_context"][mc]['link'])
 
-        prompt.append("Link:")
-        prompt.append(ris_results[i]['link'])
+            prompt.append("Snippet:")
+            prompt.append(ris_results[i]["image_context"][mc]['snippet'])
 
         # Download thumbnail
         # Example: https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcR1_U0QyWS8IYr4VzfVX9CSvV_5NCeOvkvejcvNWuppNrJD4VEJ
