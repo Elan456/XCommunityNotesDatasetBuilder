@@ -9,3 +9,4 @@ accounts.db
 *.zip
 *.csv
 *.png   
+*.parquet
