@@ -1,57 +1,61 @@
 # Community Note Generation
 
-The package contains scripts for generating Twitter community notes using a variety of methods. It also contains scripts for ranking, evaluating, and comparing the generated notes against each other and the original notes. 
+This package contains scripts for generating Twitter community notes using various methods. It also includes tools for ranking, evaluating, and comparing generated notes against each other and the original notes.
 
-## Generate a community note 
+## Generating a Community Note
 
-To generate a community note, look in the `gemini` and `llama` folders. Then contain modules with functions for generating community notes using the respective models.
-These functions can be passed into the `generate` function in the `generator.py` module. 
+To generate a community note, look in the `gemini` and `llama` folders. These contain modules with functions for generating community notes using their respective models.  
+These functions can be passed into the `generate` function in the `generator.py` module.
 
 ## Ranking
 
 ### Running an ELO Tournament
 
-To compare community notes, we have a judge LLM pick between two generated community notes at a time, picking which one matches the orignal community note the best or has better sources. See `gcn_scorer.py` for the scoring function and judge prompt. 
+To compare community notes, we use a judge LLM that selects the better of two generated notes based on how well they match the original community note or how strong their sources are.  
+See `gcn_scorer.py` for the scoring function and judge prompt.
 
-`ranking.py` is a script to generate a bunch of community notes and then pass them into a ELO tournament to see which ones perform the best. 
-The `rank` function in `gcn_scorer.py` is used to conduct the ELO tournament.
+The script `ranking.py` generates a batch of community notes and conducts an ELO tournament to determine the best-performing methods.  
+The `rank` function in `gcn_scorer.py` executes the tournament.
 
-`ranking.py` produces pair of csv files, describing the ELO tournament and the final rankings. The `<datasetname>_ranking.csv` shows the final rankings of the generation methods.
-THe `<datasetname>_results.csv` shows the results of each matchup in the ELO tournament. These results can be visualized to go through each matchup and see if the correct community note was chosen as the winner and the system is working correctly.
+`ranking.py` produces two CSV files summarizing the tournament:
+
+- `<datasetname>_ranking.csv` — Contains the final rankings of the generation methods.
+- `<datasetname>_results.csv` — Details each matchup in the ELO tournament. These results can be reviewed to verify whether the correct community note was selected as the winner.
 
 ### Visualizing the ELO Tournament
 
-We created a Streamlit app to visualize each matchup in the ELO tournament. 
+We provide a Streamlit app to visualize each matchup in the ELO tournament.
 
 #### 1. Install Dependencies
 
-Download all the dependencies in the project root using pip. 
+Install all required dependencies in the project root using pip:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 #### 2. Run the Streamlit App
 
-The app at: `misleading_image\community_note_generation\app.py`
+Run the app from the `misleading_image/community_note_generation/` directory:
+
 ```bash
 streamlit run app.py
 ```
 
-#### 3. Upload the results.csv from running `ranking.py` 
+#### 3. Upload the Results CSV from `ranking.py`
 
-The app will ask you to upload the results.csv file. This file contains the results of each matchup in the ELO tournament.
-Once this is uploaded, you'll be able to start going through each matchup. 
+The app will prompt you to upload the `results.csv` file, which contains the outcomes of each matchup in the ELO tournament.  
+Once uploaded, you'll be able to review each matchup.
 
-#### 4. Upload the test set parquet file (optional, but recommended)
+#### 4. Upload the Test Set Parquet File (Optional but Recommended)
 
-Prior to running the ELO tournament, a test set of tweets + community notes was created. This test set contains all the additional information about the 
-tweets. The extra context makes it much easier to understand the context of the community notes and the tweets.
+Before running the ELO tournament, a test set of tweets and their corresponding community notes is created. This test set includes additional information about the tweets, which provides context for evaluating the notes.
 
-The Streamlit App will ask you to upload the test set parquet file. Upload this will add the extra context to the app, including the tweet's text, image, and link.
+The Streamlit app will prompt you to upload this test set parquet file. Doing so will add extra details to the interface, including the tweet's text, image, and link.
 
-On the app, simply scroll down to the "Test data for this matchup" expansion panel. This will show the tweet text, image, and link.
+To view this additional context, scroll down to the **"Test Data for This Matchup"** expansion panel in the app.
 
-#### 5. Give feedback on the matchups
+#### 5. Provide Feedback on the Matchups
 
-On each matchup, the app gives you the options of "Agree" or "Disagree" with the judge's choice. You can also write the reasoning for your choice.
-After selecting the feedback option, click "Save Feedback" to write a new CSV file with the feedback.
+For each matchup, the app allows you to select **"Agree"** or **"Disagree"** with the judge's choice. You can also provide a written explanation for your decision.  
+After selecting your response, click **"Save Feedback"** to generate a new CSV file containing your feedback.
