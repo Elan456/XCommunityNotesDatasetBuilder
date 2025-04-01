@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import ast  # We may need this to safely parse e.g. lists of image URLs from CSV
+import os 
 
 def show_matchup(index, total):
     """
@@ -53,18 +54,31 @@ def show_matchup(index, total):
     if pd.isna(feedback) or feedback is None:
         st.write("No feedback given yet.")
     elif feedback == True:
-        st.write("Feedback: Happy with the decision.")
+        st.write("Feedback: Agree with the decision.")
     elif feedback == False:
-        st.write("Feedback: Not happy with the decision.")
+        st.write("Feedback: Disagree with the decision.")
 
     # Add feedback buttons side by side
     col_feedback1, col_feedback2 = st.columns(2)
-    if col_feedback1.button("Happy", key=f"happy_{index}"):
+    if col_feedback1.button("Agree", key=f"happy_{index}"):
         st.session_state.df.loc[index, "user-agree"] = True
         st.success("Feedback saved: Happy with the decision.")
-    if col_feedback2.button("Not Happy", key=f"not_happy_{index}"):
+    if col_feedback2.button("Disagree", key=f"not_happy_{index}"):
         st.session_state.df.loc[index, "user-agree"] = False
         st.success("Feedback saved: Not happy with the decision.")
+    if st.button("Reset Feedback", key=f"reset_feedback_{index}"):
+        st.session_state.df.loc[index, "user-agree"] = None
+        st.success("Feedback reset.")
+    st.text_input("Feedback Reason", key=f"feedback_reason_{index}", value=row.get("user-agree-reason", ""))
+    if st.button("Save Feedback", key=f"save_feedback_{index}"):
+        # Collect the feedback reason
+        feedback_reason = st.session_state[f"feedback_reason_{index}"]
+        # Save the feedback reason to the DataFrame
+        st.session_state.df.loc[index, "user-agree-reason"] = feedback_reason
+        # Save the DataFrame to a CSV file
+        st.session_state.df.to_csv("feedback_results.csv", index=False)
+        path = os.path.join(os.getcwd(), "feedback_results.csv")
+        st.success(f"Feedback saved to {path}")
 
     # --- Show matching test set data, if loaded and found ---
     if "df_test" in st.session_state:
@@ -125,7 +139,7 @@ def main():
         st.session_state.current_index = 0
 
     # Primary CSV for matchups
-    uploaded_file = st.file_uploader("Upload the results csv file", type=["csv"])
+    uploaded_matchups_file = st.file_uploader("Upload the matchups _results.csv file", type=["csv"])
     # Secondary CSV for test data
     uploaded_test_file = st.file_uploader("Upload the Test Set parquet file", type=["parquet"])
 
@@ -134,12 +148,19 @@ def main():
         st.session_state.df_test = test_df
         st.success("Test set data loaded!")
 
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
+    if uploaded_matchups_file is not None:
+        df = pd.read_csv(uploaded_matchups_file)
 
         # Add a "user-agree" column if it doesn't exist
         if "user-agree" not in df.columns:
             df["user-agree"] = None
+        if "user-agree-reason" not in df.columns:
+            df["user-agree-reason"] = None
+
+        # Ensure the "Matchup" column exists
+        if "Matchup" not in df.columns:
+            st.error("The uploaded matchups CSV does not contain a 'Matchup' column. Make sure you upload a '<datasetname>_results.csv' file produced by `ranking.py`. Do not upload the ranking csv.")
+            return
         
         # Store the DataFrame in session_state if not already stored
         if "df" not in st.session_state:
