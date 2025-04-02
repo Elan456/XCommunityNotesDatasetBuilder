@@ -1,120 +1,185 @@
 import streamlit as st
 import pandas as pd
+import ast  # We may need this to safely parse e.g. lists of image URLs from CSV
+import os 
 
-def show_matchup(row, index, total):
+def show_matchup(index, total):
     """
-    Displays the matchup for a single row from the DataFrame.
-    Highlights the winner and shows reason, original CN, etc.
+    Displays the matchup for the current row from st.session_state.df,
+    and shows feedback buttons to record if the user is happy with the judge's decision.
     """
+    row = st.session_state.df.iloc[index]
     
     st.subheader(f"Matchup {index + 1} of {total}")
     st.write(f"**Matchup Description:** {row['Matchup']}")
-    
+
     # Show original CN
     with st.expander("Original Community Note"):
         st.write(row["Original_CN"])
-    
+
     # Layout for the two generated notes side by side
     colA, colB = st.columns(2)
-    
-    # Winner logic
-    winner = row["Winner"].strip()  # e.g. 'gemini_multishot_cng'
-    
-    # Decide which note is highlighted
-    if "A:" in row["Matchup"]:
-        # By convention, we can assume "A's CN" is always the "A" note, "B's CN" is the "B" note
-        # But ensure logic matches your CSV naming
-        a_title = "A's CN"
-        b_title = "B's CN"
-    else:
-        # If the CSV is structured differently, adjust accordingly
-        # For this example, we’ll just assume "A's CN" and "B's CN" are the columns.
-        a_title = "A's CN"
-        b_title = "B's CN"
-    
-    # Styling for winner vs loser
-    highlight_style = """
-        background-color: #d8f0da; 
-        padding: 10px; 
-        border-radius: 5px;
-    """
-    normal_style = """
-        background-color: #f9f9f9; 
-        padding: 10px; 
-        border-radius: 5px;
-    """
-    
-    # If the row's "Winner" is "gemini_multishot_cng", highlight A's CN
-    # If it's "gemini_ris_cng", highlight B's CN, etc.
-    
-    # You could also incorporate logic if your row["Winner"] specifically says "A" or "B".
-    # But for now, let's just match strings: if row['Winner'] in the matchup's A side, highlight A. Otherwise highlight B.
-    
-    # For a quick approach, check if the row['Winner'] is in "A:" portion of the matchup string:
-    # (e.g. "A: gemini_multishot_cng vs B: gemini_multishot_cng_gg")
-    # But if you have a stable naming convention, just match exactly:
-    is_a_winner = (row['Winner'] in row['Matchup'].split(" vs ")[0])
-    
+
+    # Figure out which note was chosen as winner for highlighting
     comp = row["Matchup"].split(" vs ")
 
-    # Show A side
+    st.markdown(f"**Winner:** {row['Winner']}")
+
+
+    a_cn = row["A's CN"]
+    b_cn = row["B's CN"]
+
+    # --- A's side ---
     with colA:
-        st.markdown(f"# {comp[0]}")
-        # Winner highlight if is_a_winner
-        if is_a_winner:
-            st.markdown(f"**A's Note (Chosen Winner)**<br>{row[a_title]}</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"**A's Note**<br>{row[a_title]}</div>", unsafe_allow_html=True)
-    
-    # Show B side
+        st.markdown(f"### {comp[0]}")
+        # If the left side won:
+       
+        st.markdown(f"**A's Note**<br>{a_cn}", unsafe_allow_html=True)
+
+    # --- B's side ---
     with colB:
-        st.markdown(f"# {comp[1]}")
-        if not is_a_winner:
-            st.markdown(f"**B's Note (Chosen Winner)**<br>{row[b_title]}</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"**B's Note**<br>{row[b_title]}</div>", unsafe_allow_html=True)
-    
-    # Show the reason the LLM chose the winner
+        st.markdown(f"### {comp[1]}")
+        # If the right side won:
+        st.markdown(f"**B's Note**<br>{b_cn}", unsafe_allow_html=True)
+
+    # LLM explanation and ELO details
     with st.expander("LLM Reason for Choosing Winner"):
         st.write(row["Reason"])
-    
-    # Show updated ELO or any other fields you want:
-    st.write(f"**ELO After Winner:** {row['ELO_After_Winner']}")
-    st.write(f"**ELO After Loser:** {row['ELO_After_Loser']}")
+
+    st.write(f"A's Elo After: {row['A_New_ELO']:.2f}")
+    st.write(f"B's Elo After: {row['B_New_ELO']:.2f}")
+
+    # Display current feedback status
+    feedback = row.get("user-agree", None)
+    if pd.isna(feedback) or feedback is None:
+        st.write("No feedback given yet.")
+    elif feedback == True:
+        st.write("Feedback: Agree with the decision.")
+    elif feedback == False:
+        st.write("Feedback: Disagree with the decision.")
+
+    # Add feedback buttons side by side
+    col_feedback1, col_feedback2 = st.columns(2)
+    if col_feedback1.button("Agree", key=f"happy_{index}"):
+        st.session_state.df.loc[index, "user-agree"] = True
+        st.success("Feedback saved: Happy with the decision.")
+    if col_feedback2.button("Disagree", key=f"not_happy_{index}"):
+        st.session_state.df.loc[index, "user-agree"] = False
+        st.success("Feedback saved: Not happy with the decision.")
+    if st.button("Reset Feedback", key=f"reset_feedback_{index}"):
+        st.session_state.df.loc[index, "user-agree"] = None
+        st.success("Feedback reset.")
+    st.text_input("Feedback Reason", key=f"feedback_reason_{index}", value=row.get("user-agree-reason", ""))
+    if st.button("Save Feedback", key=f"save_feedback_{index}"):
+        # Collect the feedback reason
+        feedback_reason = st.session_state[f"feedback_reason_{index}"]
+        # Save the feedback reason to the DataFrame
+        st.session_state.df.loc[index, "user-agree-reason"] = feedback_reason
+        # Save the DataFrame to a CSV file
+        st.session_state.df.to_csv("feedback_results.csv", index=False)
+        path = os.path.join(os.getcwd(), "feedback_results.csv")
+        st.success(f"Feedback saved to {path}")
+
+    # --- Show matching test set data, if loaded and found ---
+    if "df_test" in st.session_state:
+        test_data = st.session_state.df_test
+        # Adjust to your actual column name in matchups CSV that references the ID:
+        match_id = row["Id"]  
+
+        # Attempt to match on test_data["id"] == row["ID"]
+        matched_rows = test_data[test_data["id"] == match_id]
+
+        if not matched_rows.empty:
+            # If there's more than one match, we handle the first; adjust as you see fit
+            test_row = matched_rows.iloc[0]
+
+            with st.expander("Test Set Data for This Matchup"):
+                # Show the text
+                st.write("**Tweet text:**")
+                st.write(test_row["text"])
+
+                # If the CSV stores a list-string of URLs (e.g. "['url1', 'url2']"), parse it
+                # If it's already a string or a single URL, adjust accordingly.
+                if pd.notna(test_row["image_urls"]):
+                    try:
+                        # Safely parse if it looks like a Python list
+                        urls = ast.literal_eval(test_row["image_urls"])
+                        # If it’s actually just a string or something else, wrap in a list
+                        if isinstance(urls, str):
+                            urls = [urls]
+                    except:
+                        # If parsing fails, fallback to a single string
+                        urls = [test_row["image_urls"]]
+
+                    st.write("**Images:**")
+                    st.write(urls)
+                    for url in urls[0]:
+                        st.write(url)
+                        # If you want to show as an actual image inline:
+                        st.image(url)
+
+                # Show tweet URL
+                if "tweet_url" in test_row:
+                    st.write("**Tweet URL:**")
+                    st.write(test_row["tweet_url"])
+
+                # Optionally show other columns from the test set
+                # (like reverse_image_search_results, dememe_reverse_image_search_results, etc.)
+                # st.write(test_row["reverse_image_search_results"])
+                # st.write(test_row["dememe_reverse_image_search_results"])
+        else:
+            st.info("No matching row found in the test set for this ID:  " + str(match_id))
 
 def main():
     st.set_page_config(layout="wide")
     st.title("Community Note Matchup Explorer")
 
-    # Have a place in session_state to track the current index
+    # Track the current index of the matchup
     if "current_index" not in st.session_state:
         st.session_state.current_index = 0
-    
-    uploaded_file = st.file_uploader("Upload the CSV file here", type=["csv"])
-    
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
 
-        # Sanity check: show how many rows
-        st.write(f"Loaded {len(df)} matchups.")
+    # Primary CSV for matchups
+    uploaded_matchups_file = st.file_uploader("Upload the matchups _results.csv file", type=["csv"])
+    # Secondary CSV for test data
+    uploaded_test_file = st.file_uploader("Upload the Test Set parquet file", type=["parquet"])
 
-        # Buttons to navigate
-        col_left, col_right = st.columns([1,1])
+    if uploaded_test_file is not None:
+        test_df = pd.read_parquet(uploaded_test_file)
+        st.session_state.df_test = test_df
+        st.success("Test set data loaded!")
 
-        # "Back" button
-        if col_left.button("⬅ Previous", disabled=(st.session_state.current_index == 0)):
-            st.session_state.current_index -= 1
+    if uploaded_matchups_file is not None:
+        df = pd.read_csv(uploaded_matchups_file)
 
-        # "Next" button
-        if col_right.button("Next ➡", disabled=(st.session_state.current_index == len(df) - 1)):
-            st.session_state.current_index += 1
+        # Add a "user-agree" column if it doesn't exist
+        if "user-agree" not in df.columns:
+            df["user-agree"] = None
+        if "user-agree-reason" not in df.columns:
+            df["user-agree-reason"] = None
+
+        # Ensure the "Matchup" column exists
+        if "Matchup" not in df.columns:
+            st.error("The uploaded matchups CSV does not contain a 'Matchup' column. Make sure you upload a '<datasetname>_results.csv' file produced by `ranking.py`. Do not upload the ranking csv.")
+            return
         
-        # Show the current matchup
-        current_row = df.iloc[st.session_state.current_index]
-        show_matchup(current_row, st.session_state.current_index, len(df))
-    
+        # Store the DataFrame in session_state if not already stored
+        if "df" not in st.session_state:
+            st.session_state.df = df
+        
+        total_rows = len(st.session_state.df)
+        st.write(f"Loaded {total_rows} matchups.")
+        
+        # Navigation buttons for previous/next matchup
+        col_left, col_right = st.columns([1, 1])
+        if col_left.button("⬅ Previous"):
+            st.session_state.current_index = max(st.session_state.current_index - 1, 0)
+        if col_right.button("Next ➡"):
+            st.session_state.current_index = min(st.session_state.current_index + 1, total_rows - 1)
+        
+        # Show the current matchup along with feedback buttons
+        show_matchup(st.session_state.current_index, total_rows)
     else:
-        st.info("Please upload a CSV file to continue.")
+        st.info("Please upload a CSV file for the matchups to continue.")
 
 if __name__ == "__main__":
     main()

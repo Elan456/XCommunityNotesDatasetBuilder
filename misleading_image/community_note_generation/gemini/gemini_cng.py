@@ -10,7 +10,7 @@ import random
 from ...twc import TweetWithContext
 import time 
 
-def generate_community_note(tweet_text, tweet_image, gemini: Gemini, google_ground = False) -> str:
+def generate_community_note(tweet_text, tweet_image, gemini: Gemini, google_ground=False, multishot=True) -> str:
     prompt = []
 
     if google_ground:
@@ -20,6 +20,10 @@ def generate_community_note(tweet_text, tweet_image, gemini: Gemini, google_grou
 
     with open(prompt_path) as f:
         prompt.append(f.read())
+
+    if multishot:
+        with open("misleading_image/prompts/community_note_examples.txt") as f:
+            prompt.append(f.read())
 
     prompt.append("Tweet: " + tweet_text)
     prompt.append("Image: ")
