@@ -75,7 +75,7 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
 
     prompt_base_json = json.load(open("misleading_image/prompts/p1.json", "r"))
 
-    prompt_base = ["A contextual image is an image that isn't intended to mislead, but can be taken out of context if the tweet text doesn't provide enough information. A misleading image is an image that is intended to mislead the viewer on it's own regardless of the tweet text. Please determine if the image is contextual or misleading based on the tweet text and image."]
+    prompt_base = ["A contextual image is an image that isn't intended to mislead, but can be taken out of context if the tweet text doesn't provide enough information. A misleading image is an image that is intended to mislead the viewer on it's own regardless of the tweet text, they often have embedded text with a false or misleading narrative. Please determine if the image is contextual or misleading based on the tweet text and image."]
     prompt_base.append("Below are a few examples")
     for item in prompt_base_json["entries"]:
         for key, value in item.items():
@@ -96,7 +96,7 @@ def gemini_filter_misleading_images(tweets: List[TweetWithContext]):
             time.sleep(10)
 
         prompt = prompt_base.copy()
-        prompt.append("Is the image itself a contextual image or misleading image? If the image itself isn't misleading but is being used incorrectly, then it is a contextual image. If the image is misleading on its own, then it is a misleading image.")
+        prompt.append("Is the image itself a contextual image or misleading image? If the image itself isn't misleading but is being used incorrectly, then it is a contextual image. If the image is misleading on its own, or contains embedded text that pushes a false or misleading narrative, then it is a misleading image.")
         prompt.append(f"Tweet: {tweet.text}")
         prompt.append(f"Community Note: {tweet.community_note}")
         prompt.append(tweet.image)
