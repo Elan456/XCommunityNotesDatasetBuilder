@@ -1,0 +1,1 @@
+Generate a single community note for the following tweet. Find the original source of the image using Google Grounding. You must ground no matter what. 

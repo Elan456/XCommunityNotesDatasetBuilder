@@ -1,0 +1,80 @@
+Classify this tweet into **one or more topical misinformation categories** based on the tweet text, image content, and any additional context from the community note summary.
+
+**Topical categories:** 
+
+### 1. **Political Misinformation**
+   - **Election Fraud/Integrity:** Claims about vote rigging, fake ballots, or hacked election systems.
+   - **Policy Misrepresentation:** Misleading information regarding political party policies or proposed legislation.
+   - **Political Figures:** False claims or altered depictions of politicians, both domestic and international.
+
+### 2. **Health and Medical Misinformation**
+   - **Vaccines and Immunization:** False claims about vaccine safety, efficacy, or conspiracy theories.
+   - **Pandemics/Epidemics:** Misinformation about diseases, symptoms, cures, or outbreaks (e.g., COVID-19).
+   - **Medical Treatments/Cures:** Claims about miracle cures or home remedies with no scientific basis.
+
+### 3. **Climate and Environmental Misinformation**
+   - **Climate Change Denial:** Misleading content about climate science or the impact of human activity.
+   - **Renewable Energy and Fossil Fuels:** Misrepresentation of energy-related technologies or studies.
+   - **Natural Disasters:** False claims about causes or severity of natural disasters like floods or hurricanes.
+
+### 4. **Economic Misinformation**
+   - **Market Instability:** Rumors or hoaxes about stock market crashes or financial crises.
+   - **Inflation and Currency Manipulation:** Misleading information about inflation rates or economic policies.
+   - **Cryptocurrency Scams:** Misinformation related to cryptocurrencies, blockchain, and digital assets.
+
+### 5. **Social and Cultural Misinformation**
+   - **Protests and Social Movements:** False depictions of protests, riots, or activist events.
+   - **Religious Conflicts:** Misinformation targeting or misrepresenting specific religious groups.
+   - **Gender and Identity:** Misleading or inflammatory content on gender-related topics, LGBTQ+ issues, or social justice.
+
+### 6. **War, Conflict, and Geopolitics**
+   - **Conflict Zones:** False depictions or statistics about casualties, troop movements, or attacks.
+   - **International Relations:** Misleading claims about alliances, diplomatic actions, or sanctions.
+   - **Refugees and Migration:** False or exaggerated claims regarding migration patterns or refugee crises.
+
+### 7. **Science and Technology Misinformation**
+   - **Emerging Technologies:** Misleading claims about AI, robotics, or scientific breakthroughs.
+   - **Space Exploration:** Hoaxes or conspiracies related to space missions or extraterrestrial life.
+   - **Data and Cybersecurity:** Misinformation related to hacking incidents, data leaks, or privacy threats.
+
+### 8. **Media and Communication Misinformation**
+   - **Fake News Sites/Articles:** Claims involving entirely fabricated news articles or websites.
+   - **Out-of-Context Quotes:** Media snippets or interviews taken out of context to push narratives.
+   - **Manipulated Media:** Deepfakes, doctored photos, or AI-generated content used to deceive.
+
+### 9. **Criminal Activities and Scams**
+   - **Human Trafficking Misinformation:** False claims about trafficking networks or incidents.
+   - **Scam Alerts:** Hoaxes about new scam techniques (e.g., phone or online scams).
+   - **Child Safety/Abductions:** Misinformation involving child kidnappings or exploitation.
+
+### 10. **Crisis and Emergency Situations**
+   - **Natural Disasters:** Misrepresentation of hurricane paths, earthquake damage, or rescue efforts.
+   - **Civil Unrest:** False reports about riots or looting.
+   - **Public Safety Threats:** Misinformation related to shootings, bombings, or other emergencies.
+
+### 11. **Historical Revisionism**
+   - **Historical Figures/Events:** False or exaggerated claims about famous figures or major historical events.
+   - **Monuments and Artifacts:** Misleading information about archaeological discoveries or historical sites.
+   - **War Crimes and Atrocities:** Denial or distortion of past events like genocides or conflicts.
+
+### 12. **Corporate and Brand Misinformation**
+   - **Product Safety/Quality:** False claims about the safety or effectiveness of products.
+   - **Boycotts/Defamation Campaigns:** Misleading information about company practices or endorsements.
+   - **Corporate Social Responsibility:** Misinformation regarding environmental, social, or governance actions.
+
+### 13. **Conspiracy Theories**
+   - **Global Cabal/New World Order:** Misleading content about secret societies controlling world events.
+   - **Adrenochrome/Child Trafficking Theories:** Extreme theories involving elite figures and trafficking.
+   - **5G/Technological Threats:** Misleading claims about the dangers of 5G and related technologies.
+
+### 14. **Misattributed or Fabricated Visuals**
+   - **Photos Misused in New Contexts:** Images from unrelated events or times used to mislead.
+   - **Deepfakes/AI-Generated Images:** Synthetic media presented as genuine.
+   - **Doctored Videos:** Edited or selectively cropped videos used to distort reality.
+
+Example:
+
+{ "id": 1822395316328382644, "text": "Check the reflection in the plane. Does this look like a real picture to you?", "community_note": { "summary": "Claims that the photo has been altered and that the crowd shown is not real are false.", ... }, "topical_categories": ["Political Misinformation", "Misattributed or Fabricated Visuals"] }
+
+
+**Final output:** Return in a JSON format such as {"topical_categories": ["Conspiracy Theories", "Crisis and Emergency Situations"]}
