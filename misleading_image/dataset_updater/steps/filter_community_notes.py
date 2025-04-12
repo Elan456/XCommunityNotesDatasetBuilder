@@ -3,8 +3,7 @@ import os
 import pandas as pd
 
 from misleading_image.dataset_updater.step import Step
-
-WRONG_CONTEXT_COMMUNITY_NOTES = "wrong_context_community_notes.tsv"
+import wrong_context_community_notes_filter
 
 
 def filter_community_notes(checkpoint, notes_tsv_file):
@@ -13,24 +12,20 @@ def filter_community_notes(checkpoint, notes_tsv_file):
 
     :param checkpoint: The Checkpoint object to update.
     :param notes_tsv_file: Path to the TSV file containing the notes.
-    """
-    output_path = os.path.join(checkpoint.output_directory, WRONG_CONTEXT_COMMUNITY_NOTES)
 
+    use as python -m misleading_image.dataset_updater.update --checkpoint_path="" --step_name="Filter Community Notes" --kwargs '{"notes_tsv_file": ""}'
+    """
     # Check if the step has already been executed
     if any(step.name == "Filter Community Notes" for step in checkpoint.executed_steps):
-        print("Skipping step 1 as it has already been executed")
+        print("Skipping step as it has already been executed")
         return
+    
+    tweets = wrong_context_community_notes_filter.main(notes_tsv_file, return_data=True)
 
-    if os.path.exists(output_path):
-        print(f"Skipping step 1 as {output_path} already exists")
-    else:
-        # wrong_context_community_notes_filter.main(notes_tsv_file, output_path)
+    #make it json serializable
+    tweets = tweets.to_dict(orient='records')
+    checkpoint.dataset = tweets
 
-        notes = pd.read_csv(output_path, sep="\t")
-        checkpoint.dataset = notes.to_dict(orient="records")
-        print(f"Filtered community notes and saved to {output_path}")
+filter_community_notes_step = Step(name="Filter Community Notes", action=filter_community_notes, execution_args=['notes_tsv_file', 'checkpoint'], )
 
-        # Delete the output file after setting the checkpoint data
-        os.remove(output_path)
-
-filter_community_notes_step = Step(name="Filter Community Notes", action=filter_community_notes)
+# python -m misleading_image.dataset_updater.update --checkpoint_path="" --step_name="Filter Community Notes" --kwargs '{"notes_tsv_file": ""}'

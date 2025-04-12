@@ -8,8 +8,15 @@ import pandas as pd
 import numpy as np
 
 import note_filtering
+def main(input_file, output_file=None, return_data=False):
+    """
+    Filters the notes dataset and either writes the filtered data to a file or returns it as a DataFrame.
 
-def main(input_file, output_file):
+    :param input_file: Path to the input file to filter.
+    :param output_file: Path to the output file to write the filtered notes to (optional).
+    :param return_data: If True, returns the filtered DataFrame instead of writing to a file.
+    :return: The filtered DataFrame if return_data is True, otherwise None.
+    """
     notes = pd.read_csv(input_file, sep="\t")
     
     try: 
@@ -23,7 +30,13 @@ def main(input_file, output_file):
         print(e)
         exit(1)
     
-    notes.to_csv(output_file, sep="\t", index=False)
+    if return_data:
+        # Return the filtered DataFrame instead of writing to a file
+        return notes
+    
+    if output_file:
+        # Write the filtered DataFrame to the specified output file
+        notes.to_csv(output_file, sep="\t", index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

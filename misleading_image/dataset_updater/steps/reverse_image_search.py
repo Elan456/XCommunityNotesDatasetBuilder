@@ -30,8 +30,8 @@ def search_with_serpapi(current_dataset):
         except KeyError:
             tweet['reverse_image_search_results'] = []
 
-def search_with_google_vision(currentDataset):
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'client_file_googlevision.json'
+def search_with_google_vision(currentDataset, num_pages=3):
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'misleading_image/dataset_updater/google_cloud/client_file_googlevision.json'
     client = vision.ImageAnnotatorClient()
     image = vision.Image()
 
@@ -45,7 +45,7 @@ def search_with_google_vision(currentDataset):
             reverse_image_search_results = []
 
             if annotations.pages_with_matching_images:
-                for page in annotations.pages_with_matching_images:
+                for page in annotations.pages_with_matching_images[:num_pages]:
                     page_info = {
                         "page_url": page.url,
                         "title": page.page_title,
@@ -55,7 +55,8 @@ def search_with_google_vision(currentDataset):
                     reverse_image_search_results.append(page_info)
 
             tweet['reverse_image_search_results'] = reverse_image_search_results
-        except Exception as e:
+        except Exception as e:  
+            print(f"Error processing tweet: {e}")
             tweet['reverse_image_search_results'] = []
 
 def reverse_image_search(checkpoint, dataset_json=None, search_method='google_vision'):
@@ -65,6 +66,8 @@ def reverse_image_search(checkpoint, dataset_json=None, search_method='google_vi
     :param checkpoint: The Checkpoint object to update.
     :param dataset_json: Path to the JSON file representing the dataset, if a checkpoint is not provided.
     :param search_method: The method to use for reverse image search, either 'google_vision' or 'serpapi'.
+
+    run as python -m misleading_image.dataset_updater.update --checkpoint_path="" --step_name="Reverse Image Search" --kwargs '{"dataset_json": "", "search_method": ""}'
     """
 
     # Check if the step has already
@@ -85,11 +88,5 @@ def reverse_image_search(checkpoint, dataset_json=None, search_method='google_vi
         # Load the serpapi key from the file
         search_with_serpapi(current_dataset)
     checkpoint.dataset = current_dataset
-
-
-
-
-    with open("misleading_image/dataset_updater/serp.key", 'r') as f:
-        serp_key = f.read().strip()
 
 reverse_image_search_step = Step(name="Reverse Image Search", action=reverse_image_search, execution_args=['dataset_json', 'checkpoint'], )

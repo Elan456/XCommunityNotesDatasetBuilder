@@ -3,15 +3,18 @@ import json
 
 from misleading_image.dataset_updater.checkpoint import Checkpoint
 from .step import Step
-# from .steps.add_image_labels import add_image_labels_step
+
+from .steps.add_image_labels import add_image_labels_step
 from .steps.filter_community_notes import filter_community_notes_step
 from .steps.reverse_image_search import reverse_image_search_step
 from .steps.dememe_reverse_image_search import dememe_reverse_image_search_step
-# from .steps.inject_community_notes import inject_community_notes_step
 from .steps.remove_existing_notes import remove_existing_notes_step
-# from .steps.collect_tweets import collect_tweets_step
-# from .steps.add_topical_categories import add_topical_categories_step
-# from .steps.combine_datasets import combine_datasets_step
+from .steps.collect_tweets import collect_tweets_step
+from .steps.add_topical_categories import add_topical_categories_step
+from .steps.combine_datasets import combine_datasets_step
+from .steps.image_annotation import image_link_annotation_step
+from .steps.add_note_author_information import add_note_author_information_step
+from .steps.add_note_status import add_note_status_step
 
 
 def initialize(output_path="./output", checkpoint_name=None) -> str:
@@ -34,6 +37,13 @@ valid_steps = [
     remove_existing_notes_step,
     reverse_image_search_step,
     dememe_reverse_image_search_step,
+    image_link_annotation_step,
+    collect_tweets_step,
+    add_image_labels_step,
+    add_topical_categories_step,
+    combine_datasets_step,
+    add_note_author_information_step,
+    add_note_status_step,
 ]
 
 

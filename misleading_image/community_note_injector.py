@@ -8,12 +8,17 @@ import json
 import pandas as pd 
 
 
-def add_community_note_to_json(tweet_file, output_file, community_note_dict):
+def add_community_note_to_json(tweet_file=None, output_file=None, community_note_dict=None, tweets=None):
     """
     Adds the community note to the json file
     """
-    with open(tweet_file, 'r') as f:
-        tweets = json.load(f)
+
+    if tweets is None:
+        if tweet_file is None:
+            raise ValueError("Either tweet_file or tweets must be provided")
+        with open(tweet_file, 'r') as f:
+            tweets = json.load(f)
+
 
     for tweet in tweets:
         tweet_id = tweet['id']
@@ -22,17 +27,28 @@ def add_community_note_to_json(tweet_file, output_file, community_note_dict):
         else:
             raise ValueError(f"Tweet id {tweet_id} not found in community notes")
 
-    with open(output_file, 'w') as f:
-        json.dump(tweets, f, indent=4)
+
+    if output_file:
+
+        with open(output_file, 'w') as f:
+            json.dump(tweets, f, indent=4)
+    else:
+        return tweets
 
 
-def build_community_note_dict(notes_file):
+def build_community_note_dict(notes_file=None, notes_df=None):
     """
     Creates a dictionary of tweet_id: community_note from a TSV file
     """
+
+
+    if notes_df is None:
+        if notes_file is None:
+            raise ValueError("Either 'notes_file' or 'notes_df' must be provided")
+        notes_df = pd.read_csv(notes_file, sep='\t')
+
     community_note_dict = {}
     unique_tweet_ids = set()
-    notes_df = pd.read_csv(notes_file, sep='\t')
 
     # Build a dictionary for each line that has every attribute (column) as a key
     # Keys for each community note: noteId	noteAuthorParticipantId	createdAtMillis	tweetId	classification	believable	harmful	validationDifficulty	misleadingOther	misleadingFactualError	misleadingManipulatedMedia	misleadingOutdatedInformation	misleadingMissingImportantContext	misleadingUnverifiedClaimAsFact	misleadingSatire	notMisleadingOther	notMisleadingFactuallyCorrect	notMisleadingOutdatedButNotWhenWritten	notMisleadingClearlySatire	notMisleadingPersonalOpinion	trustworthySources	summary	isMediaNote	twitter_link

@@ -16,7 +16,7 @@ class Step:
         logger = logging.getLogger(__name__)
 
         # Check if preconditions are met
-        if all(step in checkpoint.executed_steps for step in self.preconditions):
+        if all(step.name in [s.name for s in checkpoint.executed_steps] for step in self.preconditions):
             try:
                 # Check if kwargs match the expected parameters
                 # Check if kwargs match the expected parameters

@@ -37,7 +37,7 @@ class IDTwitterCollector(TwitterCollector):
             try:
                 yield self._format_tweet_results(self._get_multiple_tweets_by_ids(tweet_ids[i:i + 100]))
             except tweepy.errors.HTTPException as e:
-                print(f"Error: {e}")
+                print(f"HTTPException: {e.response.status_code} - {e.response.text}")
                 print("Sleeping for 1 minute")
                 time.sleep(60)
 
