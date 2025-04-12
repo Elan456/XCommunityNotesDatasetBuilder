@@ -16,9 +16,12 @@ from .twc import TweetWithContext
 from .gemini import gemini_filter_misleading_images
 from tqdm import tqdm 
 
-def main(tweet_json_file, output_json_file):
-    with open(tweet_json_file, 'r') as f:
-        tweets = json.load(f) # [:10]
+def main(tweet_json_file, output_json_file=None, return_output=False):
+    if(return_output and not output_json_file):
+        tweets = tweet_json_file
+    else:
+        with open(tweet_json_file, 'r') as f:
+            tweets = json.load(f) # [:10]
 
     # Remove tweets without images
     tweets = [tweet for tweet in tweets if tweet['image_urls']]
@@ -55,9 +58,15 @@ def main(tweet_json_file, output_json_file):
         tweets[tweet_index]['llm_image_classification'] = twc.llm_image_classification
         tweets[tweet_index]['full_llm_image_response'] = twc.full_llm_image_response
         
+    if return_output:
+        return tweets
 
-    with open(output_json_file, 'w') as f:
-        json.dump(tweets, f, indent=4)
+    # Otherwise, write the processed tweets to the output file
+    if output_json_file:
+        with open(output_json_file, 'w') as f:
+            json.dump(tweets, f, indent=4)
+    else:
+        raise ValueError("Either 'output_json_file' must be provided or 'return_output' must be True")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Add LLM image classification to json file')

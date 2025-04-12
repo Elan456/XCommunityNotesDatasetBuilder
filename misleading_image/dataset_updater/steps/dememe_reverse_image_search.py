@@ -35,10 +35,9 @@ def search_with_google_vision_dememe(currentDataset, num_pages=3):
 
         if not cropped_text:
             #first check if 'reverse_image_search_results' exists in the tweet
-            if 'reverse_image_search_results' in tweet:
-                tweet['dememe_reverse_image_search_results'] = tweet['reverse_image_search_results']
-                tweet['dememe_reverse_image_text'] = None
-                continue
+            tweet['dememe_reverse_image_search_results'] = []
+            tweet['dememe_reverse_image_text'] = None
+            continue
 
         image = pil_image_to_vision_image(cleaned_image)
 

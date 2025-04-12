@@ -55,7 +55,8 @@ def search_with_google_vision(currentDataset, num_pages=3):
                     reverse_image_search_results.append(page_info)
 
             tweet['reverse_image_search_results'] = reverse_image_search_results
-        except Exception as e:
+        except Exception as e:  
+            print(f"Error processing tweet: {e}")
             tweet['reverse_image_search_results'] = []
 
 def reverse_image_search(checkpoint, dataset_json=None, search_method='google_vision'):
@@ -66,7 +67,7 @@ def reverse_image_search(checkpoint, dataset_json=None, search_method='google_vi
     :param dataset_json: Path to the JSON file representing the dataset, if a checkpoint is not provided.
     :param search_method: The method to use for reverse image search, either 'google_vision' or 'serpapi'.
 
-    run as python -m misleading_image.dataset_updater.update --checkpoint_path="" --step_name="" --kwargs '{"dataset_json": "", "search_method": ""}'
+    run as python -m misleading_image.dataset_updater.update --checkpoint_path="" --step_name="Reverse Image Search" --kwargs '{"dataset_json": "", "search_method": ""}'
     """
 
     # Check if the step has already

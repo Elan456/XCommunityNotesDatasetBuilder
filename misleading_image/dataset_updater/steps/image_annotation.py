@@ -12,6 +12,8 @@ def image_link_annotation(checkpoint, dataset_json=None, dememe=False):
     :param dememe: whether to use the dememe reverse image search results
     :param checkpoint: the checkpoint object to update
     :param dataset_json: Path to the JSON file representing the dataset for use if a checkpoint is not provided.
+
+    run as python -m misleading_image.dataset_updater.update --checkpoint_path="" --step_name="Image Link Annotation" --kwargs='{"dataset_json": "path/to/dataset.json", "dememe": false}'
     """
 
     if not any(
@@ -37,31 +39,30 @@ def image_link_annotation(checkpoint, dataset_json=None, dememe=False):
         if dememe:
             if any(step.name == "Image Link Annotation" for step in checkpoint.executed_steps) and tweet.get(
                     'dememe_reverse_image_text') is None:
-                tweet['dememe_reverse_image_search_results'] = tweet.get('reverse_image_search_results', [])
                 continue
-
-        if dememe:
-            reverse_image_search_results = tweet.get('dememe_reverse_image_search_results', [])
+            reverse_image_search_results_key = 'dememe_reverse_image_search_results'
         else:
-            reverse_image_search_results = tweet.get('reverse_image_search_results', [])
-
+            reverse_image_search_results_key = 'reverse_image_search_results'
+    
+        # Get the specific reverse image search results for this tweet
+        reverse_image_search_results = tweet.get(reverse_image_search_results_key, [])
+    
         for ris_result_num in range(min(NUMBER_IMAGES_TO_SEARCH, len(reverse_image_search_results))):
             ris_result = reverse_image_search_results[ris_result_num]
             try:
                 page_url = ris_result.get('page_url')
                 if not page_url:
                     continue
-
+    
                 response = rotator.google_search(page_url)
                 if not response:
                     ris_result['image_context'] = []
                     continue
                 search_results = response.get('items', [])[:NUMBER_IMAGE_CONTEXTS]
-
+    
                 if 'image_context' not in ris_result:
                     ris_result['image_context'] = []
-
-
+    
                 for search_result in search_results:
                     context = {
                         'title': search_result.get('title'),
@@ -71,6 +72,9 @@ def image_link_annotation(checkpoint, dataset_json=None, dememe=False):
                     ris_result['image_context'].append(context)
             except Exception as e:
                 print(f"Error processing tweet: {e}")
+    
+        # Update the specific key in the tweet
+        tweet[reverse_image_search_results_key] = reverse_image_search_results
 
     checkpoint.dataset = current_dataset
 

@@ -1,8 +1,12 @@
+from io import BytesIO
+import os
 import cv2
 import pytesseract
 import numpy as np
 from PIL import Image
 import argparse
+
+import requests
 
 def remove_meme_text(pil_image):
     # Convert PIL image to OpenCV format
@@ -54,14 +58,28 @@ def remove_meme_text(pil_image):
 
     if not bounding_boxes:
         return pil_image, None
-
-    # Determine cropping boundaries
-    min_y = min(box[1] for box in bounding_boxes)
-    max_y = max(box[1] + box[3] for box in bounding_boxes)
-
-    # Check if the min or max is in the top or bottom 10% of the image
+    
+    filtered_width_boxes = []
+    min_width = width * 0.80
     top_threshold = height * 0.10
     bottom_threshold = height * 0.90
+
+    for box in bounding_boxes:
+        #can you print the text in the boxes
+        x, y, w, h = box
+        if w >= min_width:
+            filtered_width_boxes.append(box)
+
+    if not filtered_width_boxes:
+        return pil_image, None
+
+
+    # Determine cropping boundaries
+    min_y = min(box[1] for box in filtered_width_boxes)
+    max_y = max(box[1] + box[3] for box in filtered_width_boxes)
+
+    # Check if the min or max is in the top or bottom 10% of the image
+
 
     if min_y < top_threshold or max_y > bottom_threshold:
         # Ensure we are cropping a significant portion but not more than 50% of the image height
@@ -90,22 +108,29 @@ def remove_meme_text(pil_image):
             cropped_pil_image = Image.fromarray(cv2.cvtColor(cropped_image, cv2.COLOR_BGR2RGB))
             return cropped_pil_image if cropped_pil_image.size[1] > 0 else pil_image, " ".join(
                 cropped_text)  # Avoid empty images
-
     return pil_image, None
 
 def main():
     parser = argparse.ArgumentParser(description="Remove meme text from an image by cropping.")
-    parser.add_argument("image_path", type=str, help="Path to the input image")
+    parser.add_argument("media_url", type=str, help="Path to the input image")
     parser.add_argument("output_path", type=str, help="Path to save the output image")
 
     args = parser.parse_args()
 
-    pil_image = Image.open(args.image_path)
-    cleaned_image, cropped_text = remove_meme_text(pil_image)
+    output_dir = os.path.dirname(args.output_path)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)  # Create the directory if it doesn't exist
+
+    response = requests.get(args.media_url)
+    my_img = Image.open(BytesIO(response.content))
+    cleaned_image, cropped_text = remove_meme_text(my_img)
     cleaned_image.save(args.output_path)
+    #check to see if output path exists
     print(f"Processed image saved at {args.output_path}")
     if cropped_text:
         print("Cropped Text:", cropped_text)
+    else:
+        print("No significant meme text detected.")
 
 if __name__ == "__main__":
     main()
