@@ -29,17 +29,29 @@ def show_matchup(index, total):
     a_cn = row["A's CN"]
     b_cn = row["B's CN"]
 
+    print(row.keys())
+
+    a_accurate = int(row["A's Accuracy"]) == 1
+    b_accurate = int(row["B's Accuracy"]) == 1
+
     # --- A's side ---
     with colA:
         st.markdown(f"### {comp[0]}")
         # If the left side won:
-       
+        if a_accurate:
+            st.markdown("A was labelled as **accurate**", unsafe_allow_html=True)
+        else:
+            st.markdown("A was labelled as **inaccurate**", unsafe_allow_html=True)
         st.markdown(f"**A's Note**<br>{a_cn}", unsafe_allow_html=True)
+
 
     # --- B's side ---
     with colB:
         st.markdown(f"### {comp[1]}")
-        # If the right side won:
+        if b_accurate:
+            st.markdown("B was labelled as **accurate**", unsafe_allow_html=True)
+        else:
+            st.markdown("B was labelled as **inaccurate**", unsafe_allow_html=True)
         st.markdown(f"**B's Note**<br>{b_cn}", unsafe_allow_html=True)
 
     # LLM explanation and ELO details
