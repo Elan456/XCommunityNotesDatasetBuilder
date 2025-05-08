@@ -36,7 +36,7 @@ class Step:
                         checkpoint_file_path = checkpoint.mark_step_completed(self, output_name)
                     else:
                         checkpoint_file_path = checkpoint.mark_step_completed(self)
-                    logger.info(f"Executed step: {self.name}")
+                    logger.info(f"Executed step: {self.name} and saved to {checkpoint_file_path}")
                     return checkpoint_file_path
                 else:
                     logger.info(f"Step '{self.name}' already executed")

@@ -10,3 +10,4 @@ accounts.db
 *.csv
 *.png   
 *.parquet
+*.pkl

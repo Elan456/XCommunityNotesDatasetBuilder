@@ -15,6 +15,12 @@ from .steps.combine_datasets import combine_datasets_step
 from .steps.image_annotation import image_link_annotation_step
 from .steps.add_note_author_information import add_note_author_information_step
 from .steps.add_note_status import add_note_status_step
+from .steps.merge_topic_categories import merge_topic_categories_step
+
+# Create logger
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def initialize(output_path="./output", checkpoint_name=None) -> str:
@@ -44,6 +50,7 @@ valid_steps = [
     combine_datasets_step,
     add_note_author_information_step,
     add_note_status_step,
+    merge_topic_categories_step,
 ]
 
 
@@ -83,6 +90,8 @@ def main():
         raise ValueError(f"Step '{args.step_name}' not found in valid steps.")
 
     # Execute the step with the provided keyword arguments
+    logger = logging.getLogger(__name__)
+    logger.info(f"Executing step '{step.name}' with arguments: {args.kwargs}")
     step.execute(checkpoint, args.checkpoint_name, **args.kwargs)
 
 if __name__ == "__main__":
