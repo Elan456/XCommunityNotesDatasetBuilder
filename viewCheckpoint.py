@@ -22,7 +22,12 @@ def write_checkpoint_to_json(checkpoint_path, output_file):
 
     print(f"Checkpoint data written to {output_path}")
 
+
 def main():
+    """
+    run as python -m viewCheckpoint --checkpoint_path <path to checkpoint> --output_file <output file name>
+    :return:
+    """
     parser = argparse.ArgumentParser(description="Load a checkpoint and write its data to a JSON file.")
     parser.add_argument("--checkpoint_path", required=True, help="Path to the checkpoint file.")
     parser.add_argument("--output_file", required=True, help="Name of the output JSON file.")

@@ -66,6 +66,9 @@ class Checkpoint:
         elif not file_name.endswith(".pkl"):
             file_name += ".pkl"
 
+        if not os.path.exists(self.output_directory):
+            os.makedirs(self.output_directory)
+
         file_path = os.path.join(self.output_directory, file_name)
 
         with open(file_path, "wb") as f:

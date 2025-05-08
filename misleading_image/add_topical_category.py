@@ -11,9 +11,12 @@ from .twc import TweetWithContext
 from .gemini import gemini_add_topical_categories
 from tqdm import tqdm 
 
-def main(tweet_json_file, output_json_file):
-    with open(tweet_json_file, 'r') as f:
-        tweets = json.load(f) # [:10]
+def main(tweet_json_file, output_json_file=None, return_output=False):
+    if return_output and not output_json_file:
+        tweets = tweet_json_file
+    else:
+        with open(tweet_json_file, 'r') as f:
+            tweets = json.load(f) # [:10]
 
     # Remove tweets without images
     tweets = [tweet for tweet in tweets if tweet['image_urls']]
@@ -49,9 +52,14 @@ def main(tweet_json_file, output_json_file):
         tweets[tweet_index]['topical_categories'] = twc.topical_categories
         tweets[tweet_index]['full_topical_categories_response'] = twc.full_topical_category_response
         
-
-    with open(output_json_file, 'w') as f:
-        json.dump(tweets, f, indent=4)
+    if return_output:
+        return tweets
+    
+    if output_json_file:
+        with open(output_json_file, 'w') as f:
+            json.dump(tweets, f, indent=4)
+    else:
+        raise ValueError("Either 'output_json_file' must be provided or 'return_output' must be True")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Add LLM image classification to json file')
